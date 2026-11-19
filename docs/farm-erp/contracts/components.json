@@ -1,0 +1,536 @@
+{
+  "schema_version": "1.0.0",
+  "registry_kind": "component_ownership_design",
+  "status": "proposed_not_implemented",
+  "as_of": "2026-11-19",
+  "not_a_JCB_import": true,
+  "source_document": "../ARCHITECTURE.md",
+  "entity_registry": "domain-entities.json",
+  "deployment_contract": {
+    "legal_entities_per_installation": 1,
+    "joomla_installations": 1,
+    "transactional_database": "one application database with one tested connection per command",
+    "architecture": "modular_in_process_Joomla_application",
+    "installation_order": [
+      "com_farmcore",
+      "com_farmledger",
+      "selected_domain_components",
+      "required_JCB_authored_plugins"
+    ],
+    "uninstall_policy": "Block removal while dependent components or retained business data require the owner. Disabling new ordinary capture preserves authorised historical reads, corrections, recalls, reversals and closure operations through the retained owner services and controls; it never authorises erasure or bypasses invariants.",
+    "service_gate": "Prove a supported JCB-owned facade/bridge and autoload/version/upgrade ownership before expanding component count; no invented component getService/getContainer API.",
+    "disable_policy": "Disable new ordinary capture and discovery actions while retaining authorised historical corrections, restriction review/release, recalls, financial reversals and closure workflows required to manage existing obligations."
+  },
+  "components": [
+    {
+      "name": "com_farmcore",
+      "display_name": "Farm Core",
+      "required_dependencies": [],
+      "optional_dependencies_policy": "No satellite is required by another satellite. Optional linked records require the target capability only when that integration is used.",
+      "capabilities": [
+        {
+          "name": "organisation_and_farm_scope",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "shared_parties_products_units_currencies",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "private_managed_documents",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "identity_and_authorisation_context",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "command_receipts_audit_outbox",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "approved_country_reference_data",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "optional_daily_workspace_providers",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "source_and_external_identity_mapping",
+          "status": "planned",
+          "contract_version": "design-1"
+        }
+      ],
+      "owned_entities": [
+        "organisation",
+        "farm",
+        "location",
+        "enterprise",
+        "party",
+        "party_role",
+        "party_contact",
+        "party_address",
+        "uom",
+        "product",
+        "product_conversion",
+        "vocabulary",
+        "vocabulary_item",
+        "currency",
+        "exchange_rate",
+        "country_pack",
+        "file",
+        "file_type",
+        "document_link",
+        "user_scope",
+        "external_reference",
+        "number_series",
+        "command_receipt",
+        "audit_event",
+        "outbox_message",
+        "import_batch",
+        "import_row",
+        "approval"
+      ],
+      "must_not_own": [
+        "Satellite domain tables",
+        "Financial or stock balances",
+        "Booking capacity"
+      ],
+      "source": "../ARCHITECTURE.md",
+      "native_authoring": "JCB component root; generated installers and native source graph are distinct deliverables."
+    },
+    {
+      "name": "com_farmledger",
+      "display_name": "Farm Ledger",
+      "required_dependencies": [
+        "com_farmcore"
+      ],
+      "optional_dependencies_policy": "No satellite is required by another satellite. Optional linked records require the target capability only when that integration is used.",
+      "capabilities": [
+        {
+          "name": "stock_quantity_reservation_and_valuation",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "procurement_and_sales_documents",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "tax_and_fx_transaction_snapshots",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "cash_payments_and_allocations",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "accountant_export",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "optional_native_double_entry",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "bank_reconciliation_and_period_close",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "budgets_and_financial_asset_schedules",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "independent_stock_holds_and_release",
+          "status": "planned",
+          "contract_version": "design-1"
+        }
+      ],
+      "owned_entities": [
+        "warehouse",
+        "bin",
+        "lot",
+        "stock_hold",
+        "stock_transaction",
+        "stock_entry",
+        "stock_balance",
+        "stock_reservation",
+        "valuation_entry",
+        "trade_document",
+        "trade_line",
+        "tax_detail",
+        "payment",
+        "payment_allocation",
+        "account",
+        "period",
+        "journal",
+        "journal_line",
+        "bank_account",
+        "bank_statement_line",
+        "reconciliation",
+        "reconciliation_match",
+        "cash_session",
+        "cash_count",
+        "budget",
+        "budget_line",
+        "financial_asset",
+        "depreciation_entry"
+      ],
+      "must_not_own": [
+        "Animal biology",
+        "Crop activities",
+        "Production execution",
+        "Room or hunt capacity",
+        "Employment records"
+      ],
+      "source": "../ARCHITECTURE.md",
+      "native_authoring": "JCB component root; generated installers and native source graph are distinct deliverables."
+    },
+    {
+      "name": "com_farmlivestock",
+      "display_name": "Farm Livestock",
+      "required_dependencies": [
+        "com_farmcore",
+        "com_farmledger"
+      ],
+      "optional_dependencies_policy": "No satellite is required by another satellite. Optional linked records require the target capability only when that integration is used.",
+      "capabilities": [
+        {
+          "name": "individual_animal_identity",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "group_and_membership_management",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "breeding_weights_and_events",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "treatment_and_withdrawal_evidence",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "livestock_movement_workflow",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "wildlife_observations",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "cost_attribution_links",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "output_scoped_animal_restrictions",
+          "status": "planned",
+          "contract_version": "design-1"
+        }
+      ],
+      "owned_entities": [
+        "animal",
+        "animal_identifier",
+        "animal_group",
+        "group_membership",
+        "animal_event",
+        "group_count_event",
+        "weight_observation",
+        "breeding_record",
+        "treatment",
+        "treatment_target",
+        "animal_restriction",
+        "livestock_movement",
+        "movement_line",
+        "livestock_cost_link",
+        "wildlife_observation"
+      ],
+      "must_not_own": [
+        "Independent feed or medicine balances",
+        "Invoices or GL",
+        "Official permit issuance"
+      ],
+      "source": "../ARCHITECTURE.md",
+      "native_authoring": "JCB component root; generated installers and native source graph are distinct deliverables."
+    },
+    {
+      "name": "com_farmcrops",
+      "display_name": "Farm Crops",
+      "required_dependencies": [
+        "com_farmcore",
+        "com_farmledger"
+      ],
+      "optional_dependencies_policy": "No satellite is required by another satellite. Optional linked records require the target capability only when that integration is used.",
+      "capabilities": [
+        {
+          "name": "plots_and_cycle_area_allocations",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "crop_activity_and_input_applications",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "field_observations",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "irrigation_events",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "graded_harvest_completion",
+          "status": "planned",
+          "contract_version": "design-1"
+        }
+      ],
+      "owned_entities": [
+        "plot",
+        "crop_cycle",
+        "crop_cycle_plot",
+        "crop_activity",
+        "input_application",
+        "field_observation",
+        "irrigation_event",
+        "harvest",
+        "harvest_line"
+      ],
+      "must_not_own": [
+        "Independent inventory",
+        "Manufacturing recipe execution",
+        "Automatic agronomic prescription"
+      ],
+      "source": "../ARCHITECTURE.md",
+      "native_authoring": "JCB component root; generated installers and native source graph are distinct deliverables."
+    },
+    {
+      "name": "com_farmmake",
+      "display_name": "Farm Make",
+      "required_dependencies": [
+        "com_farmcore",
+        "com_farmledger"
+      ],
+      "optional_dependencies_policy": "No satellite is required by another satellite. Optional linked records require the target capability only when that integration is used.",
+      "capabilities": [
+        {
+          "name": "approved_bom_and_recipe_revisions",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "production_orders_and_operations",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "material_use_and_actual_outputs",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "quality_hold_and_release",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "lot_genealogy",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "rework_and_recall_coordination",
+          "status": "planned",
+          "contract_version": "design-1"
+        }
+      ],
+      "owned_entities": [
+        "bom",
+        "bom_revision",
+        "bom_line",
+        "work_centre",
+        "production_order",
+        "production_operation",
+        "material_use",
+        "production_output",
+        "quality_check",
+        "quality_specification",
+        "genealogy_link",
+        "recall",
+        "recall_target"
+      ],
+      "must_not_own": [
+        "Independent procurement or balances",
+        "Employee wage calculations",
+        "Food safety certification"
+      ],
+      "source": "../ARCHITECTURE.md",
+      "native_authoring": "JCB component root; generated installers and native source graph are distinct deliverables."
+    },
+    {
+      "name": "com_farmstay",
+      "display_name": "Farm Stay",
+      "required_dependencies": [
+        "com_farmcore",
+        "com_farmledger"
+      ],
+      "optional_dependencies_policy": "No satellite is required by another satellite. Optional linked records require the target capability only when that integration is used.",
+      "capabilities": [
+        {
+          "name": "physical_resource_capacity",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "rate_plan_snapshots",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "holds_reservations_and_guests",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "lodging_and_hunt_packages",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "approved_quota_claims",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "permit_review_evidence",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "hunt_outcomes_and_trophy_custody",
+          "status": "planned",
+          "contract_version": "design-1"
+        }
+      ],
+      "owned_entities": [
+        "resource",
+        "rate_plan",
+        "rate_rule",
+        "reservation",
+        "reservation_item",
+        "resource_claim",
+        "guest",
+        "hunt",
+        "quota",
+        "quota_allocation",
+        "permit_check",
+        "hunt_outcome",
+        "trophy_record"
+      ],
+      "must_not_own": [
+        "Financial invoices or payment ledgers",
+        "Authoritative wildlife census",
+        "Government licences or permits"
+      ],
+      "source": "../ARCHITECTURE.md",
+      "native_authoring": "JCB component root; generated installers and native source graph are distinct deliverables."
+    },
+    {
+      "name": "com_farmwork",
+      "display_name": "Farm Work",
+      "required_dependencies": [
+        "com_farmcore",
+        "com_farmledger"
+      ],
+      "optional_dependencies_policy": "No satellite is required by another satellite. Optional linked records require the target capability only when that integration is used.",
+      "capabilities": [
+        {
+          "name": "workers_and_engagements",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "tasks_and_assignments",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "time_attendance_leave_and_payroll_export",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "operating_assets_and_maintenance",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "meters_fuel_and_water_observations",
+          "status": "planned",
+          "contract_version": "design-1"
+        },
+        {
+          "name": "rainfall_inspection_and_incident_records",
+          "status": "planned",
+          "contract_version": "design-1"
+        }
+      ],
+      "owned_entities": [
+        "worker",
+        "engagement",
+        "skill_record",
+        "task",
+        "task_assignment",
+        "crew",
+        "crew_member",
+        "time_entry",
+        "attendance",
+        "leave_request",
+        "payroll_export",
+        "operating_asset",
+        "maintenance_plan",
+        "maintenance_job",
+        "meter_reading",
+        "fuel_issue",
+        "water_point",
+        "water_observation",
+        "rain_observation",
+        "inspection",
+        "incident"
+      ],
+      "must_not_own": [
+        "Statutory payroll engine",
+        "Fuel or stock balances",
+        "Financial depreciation ledger"
+      ],
+      "source": "../ARCHITECTURE.md",
+      "native_authoring": "JCB component root; generated installers and native source graph are distinct deliverables."
+    }
+  ]
+}

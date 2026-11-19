@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vast-development-method/doc-test/blob/docs/southern-africa-farm-erp-roadmap/docs/farm-erp/contracts/country-pack.schema.json",
+  "title": "Farm ERP country-pack evidence and activation contract",
+  "description": "Metadata schema for proposed effective-dated country configuration. No legal rates, wage amounts or permit permissions are seeded here. A capability needs its own strict parameter schema and verified fixtures before activation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "pack_id", "country", "version", "status", "effective_from", "sources", "capabilities", "owner", "reviewed_on"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "pack_id": {"type": "string", "pattern": "^(NA|ZA|BW)-[a-z0-9-]+$"},
+    "country": {"enum": ["NA", "ZA", "BW"]},
+    "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"},
+    "status": {"enum": ["draft", "approved", "superseded", "withdrawn"]},
+    "effective_from": {"type": "string", "format": "date"},
+    "effective_until": {"type": ["string", "null"], "format": "date"},
+    "supersedes_pack_version": {"type": ["string", "null"]},
+    "owner": {"type": "string", "minLength": 1, "maxLength": 200},
+    "reviewed_on": {"type": "string", "format": "date"},
+    "approval": {"$ref": "#/$defs/approval"},
+    "sources": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/source"}},
+    "capabilities": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/capability"}},
+    "known_conflicts": {"type": "array", "items": {"type": "string", "minLength": 1}}
+  },
+  "allOf": [
+    {"if": {"properties": {"status": {"const": "approved"}}}, "then": {"required": ["approval"]}}
+  ],
+  "$defs": {
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviewer", "reviewer_role", "approved_at", "evidence_reference"],
+      "properties": {
+        "reviewer": {"type": "string", "minLength": 1},
+        "reviewer_role": {"type": "string", "minLength": 1},
+        "approved_at": {"type": "string", "format": "date-time"},
+        "evidence_reference": {"type": "string", "minLength": 1}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_id", "authority", "url", "instrument_or_document", "retrieved_on", "verification"],
+      "properties": {
+        "source_id": {"type": "string", "pattern": "^[A-Z0-9_-]+$"},
+        "authority": {"type": "string", "minLength": 1},
+        "url": {"type": "string", "format": "uri"},
+        "instrument_or_document": {"type": "string", "minLength": 1},
+        "published_on": {"type": ["string", "null"], "format": "date"},
+        "commencement_evidence": {"type": ["string", "null"]},
+        "retrieved_on": {"type": "string", "format": "date"},
+        "verification": {"enum": ["primary_content_read", "official_index_only", "needs_current_verification"]},
+        "limitations": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "jurisdiction_scope", "activity_scope", "status", "enabled", "source_ids", "parameter_schema", "parameters", "acceptance_case_ids"],
+      "properties": {
+        "name": {"enum": ["operational_currency", "invoicing_tax", "livestock_movement", "hunting", "lodging_levy", "food_feed", "employment_export", "payroll", "privacy_retention", "forestry_water"]},
+        "jurisdiction_scope": {"type": "string", "minLength": 1},
+        "activity_scope": {"type": "string", "minLength": 1},
+        "status": {"enum": ["unverified", "draft", "approved", "blocked", "superseded"]},
+        "enabled": {"type": "boolean"},
+        "source_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+        "parameter_schema": {"type": "string", "minLength": 1, "description": "Reference to an implemented and versioned strict capability schema. The application must resolve and validate it before activation."},
+        "parameters": {"type": "object", "description": "Must additionally pass parameter_schema; metadata validation alone is not approval."},
+        "acceptance_case_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^AT-[0-9]{3}$"}},
+        "executed_receipt_references": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "approval": {"$ref": "#/$defs/approval"},
+        "limitations": {"type": "array", "items": {"type": "string"}}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"enabled": {"const": true}}},
+          "then": {
+            "properties": {"status": {"const": "approved"}, "acceptance_case_ids": {"minItems": 1}},
+            "required": ["approval", "executed_receipt_references"]
+          }
+        }
+      ]
+    }
+  }
+}
