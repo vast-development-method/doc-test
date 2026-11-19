@@ -46,7 +46,7 @@ Separate companies, franchises, public multi-tenant SaaS, automatic cross-border
 
 ### R0 — feasibility and architecture proof
 
-Produce two native JCB components with working master/detail records, a protected command, cross-component service use, a real rollback, an export/rebuild, and an independent environment restore. Resolve shared Power loading and route exposure before scaling. R0 uses synthetic data.
+Produce minimal native Core and Ledger components with working master/detail records, a protected command and cross-component service use. Add a minimal Livestock caller to prove the complete Livestock → Ledger → Core transaction, including rollback, replay and concurrency. Prove source export/rebuild and an independent environment restore. Resolve shared Power loading and route exposure before scaling. R0 uses synthetic data.
 
 ### R1 — farmer pilot
 
