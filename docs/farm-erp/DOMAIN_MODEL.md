@@ -163,7 +163,7 @@ Use interval `[arrival_date, departure_date)` for room nights: departure day can
 | `skill_record` | worker, capability/certificate, issuer, validity, evidence | Expired qualification blocks designated assignments where configured |
 | `task` / `task_assignment` | farm/enterprise/location/source, due/priority/state; workers/crew/quantity | Plain-language work queue; task completion is not automatic stock or pay approval |
 | `crew` / `crew_member` | farm, name, supervisor; crew/worker, from/to dates | Managed crew membership; task captures assigned individuals or a dated membership snapshot; later membership changes do not rewrite history |
-| `time_entry` / `attendance` | worker/date/task, duration or start/end, approver | Detect overlaps, overnight shifts and corrections; approved payroll export revision retained |
+| `time_entry` / `attendance` | worker/date/task, duration or start/end, approver; time-entry cost_rate_snapshot and approved_cost_amount where costed | Detect overlaps/overnight shifts; approval freezes the reviewed costing basis; attendance alone creates no wage liability; retain export/correction revisions |
 | `leave_request` | worker, local dates/type, approval, balance reference | Country policy configurable; do not infer statutory accruals without approved pack |
 | `payroll_export` | period, approved rows/hash, format/version, destination/ref, status | Exported amounts trace to approved inputs; rerun deduplicates; no false statutory calculation claim |
 | `operating_asset` | asset code/product/serial, location, custodian, acquisition/ledger ref, meter unit | Physical life and financial depreciation distinct; lifecycle active/service/out_of_use/disposed |

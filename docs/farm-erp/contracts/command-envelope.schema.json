@@ -5,20 +5,111 @@
   "description": "Design contract, not an implemented JCB endpoint. Each command also requires its strict command-specific payload validator; commands.json specifies the minimum semantic contracts. Actor and organisation are derived server-side.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "request_key", "command_type", "farm_guid", "occurred_on", "payload"],
+  "required": [
+    "schema_version",
+    "request_key",
+    "command_type",
+    "farm_guid",
+    "occurred_on",
+    "payload"
+  ],
   "properties": {
-    "schema_version": {"const": "1.0"},
-    "request_key": {"$ref": "#/$defs/uuid"},
-    "command_type": {"type": "string", "pattern": "^(core|stock|trade|finance|livestock|crops|make|stay|work)\\.[a-z][a-z0-9_]*$", "maxLength": 80},
-    "aggregate_guid": {"$ref": "#/$defs/uuid"},
-    "expected_version": {"type": "integer", "minimum": 1, "maximum": 2147483647},
-    "farm_guid": {"oneOf": [{"$ref": "#/$defs/uuid"}, {"type": "null"}], "description": "Null is allowed only for a registered organisation-wide command; it never means unrestricted farm access."},
-    "occurred_on": {"type": "string", "format": "date", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
-    "payload": {"type": "object", "minProperties": 1, "description": "Validate against the registered command-specific payload contract; unknown payload fields are rejected by that validator. This envelope alone cannot authorise or validate business data."}
+    "schema_version": {
+      "const": "1.0"
+    },
+    "request_key": {
+      "$ref": "#/$defs/uuid"
+    },
+    "command_type": {
+      "type": "string",
+      "pattern": "^(core|stock|trade|finance|livestock|crops|make|stay|work)\\.[a-z][a-z0-9_]*$",
+      "maxLength": 80,
+      "enum": [
+        "core.activate_country_pack",
+        "core.approve_import",
+        "core.change_scope",
+        "crops.complete_harvest",
+        "crops.record_application",
+        "crops.record_irrigation",
+        "finance.allocate_payment",
+        "finance.close_period",
+        "finance.post_journal",
+        "finance.post_payment",
+        "finance.reconcile_bank",
+        "finance.revalue_fx",
+        "livestock.dispatch_movement",
+        "livestock.receive_movement",
+        "livestock.record_mortality",
+        "livestock.record_treatment",
+        "livestock.record_weight",
+        "livestock.register_birth",
+        "livestock.release_restriction",
+        "make.complete_batch",
+        "make.release_order",
+        "make.release_quality",
+        "make.start_recall",
+        "stay.approve_hunt",
+        "stay.cancel_reservation",
+        "stay.confirm_reservation",
+        "stay.expire_hold",
+        "stay.place_hold",
+        "stay.record_hunt_outcome",
+        "stock.adjust",
+        "stock.issue",
+        "stock.place_hold",
+        "stock.receive",
+        "stock.release_hold",
+        "stock.reserve",
+        "stock.reverse",
+        "stock.transfer",
+        "trade.close_cash_session",
+        "trade.confirm_order",
+        "trade.post_bill",
+        "trade.post_credit",
+        "trade.post_invoice",
+        "work.approve_payroll_export",
+        "work.approve_time",
+        "work.complete_maintenance",
+        "work.record_fuel_issue"
+      ]
+    },
+    "aggregate_guid": {
+      "$ref": "#/$defs/uuid"
+    },
+    "expected_version": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    "farm_guid": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/uuid"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Null is allowed only for a registered organisation-wide command; it never means unrestricted farm access."
+    },
+    "occurred_on": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "payload": {
+      "type": "object",
+      "minProperties": 1,
+      "description": "Validate against the registered command-specific payload contract; unknown payload fields are rejected by that validator. This envelope alone cannot authorise or validate business data."
+    }
   },
   "dependentRequired": {
-    "aggregate_guid": ["expected_version"],
-    "expected_version": ["aggregate_guid"]
+    "aggregate_guid": [
+      "expected_version"
+    ],
+    "expected_version": [
+      "aggregate_guid"
+    ]
   },
   "$defs": {
     "uuid": {
