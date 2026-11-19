@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vast-development-method/doc-test/blob/docs/southern-africa-farm-erp-roadmap/docs/farm-erp/contracts/command-envelope.schema.json",
+  "title": "Farm ERP proposed command transport envelope",
+  "description": "Design contract, not an implemented JCB endpoint. Each command also requires its strict command-specific payload validator; commands.json specifies the minimum semantic contracts. Actor and organisation are derived server-side.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "request_key", "command_type", "farm_guid", "occurred_on", "payload"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "request_key": {"$ref": "#/$defs/uuid"},
+    "command_type": {"type": "string", "pattern": "^(core|stock|trade|finance|livestock|crops|make|stay|work)\\.[a-z][a-z0-9_]*$", "maxLength": 80},
+    "aggregate_guid": {"$ref": "#/$defs/uuid"},
+    "expected_version": {"type": "integer", "minimum": 1, "maximum": 2147483647},
+    "farm_guid": {"oneOf": [{"$ref": "#/$defs/uuid"}, {"type": "null"}], "description": "Null is allowed only for a registered organisation-wide command; it never means unrestricted farm access."},
+    "occurred_on": {"type": "string", "format": "date", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "payload": {"type": "object", "minProperties": 1, "description": "Validate against the registered command-specific payload contract; unknown payload fields are rejected by that validator. This envelope alone cannot authorise or validate business data."}
+  },
+  "dependentRequired": {
+    "aggregate_guid": ["expected_version"],
+    "expected_version": ["aggregate_guid"]
+  },
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    }
+  }
+}

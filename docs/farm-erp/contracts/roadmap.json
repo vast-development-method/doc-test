@@ -1,0 +1,468 @@
+{
+  "schema_version": "1.0.0",
+  "registry_kind": "implementation_milestone_design",
+  "status": "proposed_not_implemented",
+  "source_document": "../DELIVERY_ROADMAP.md",
+  "acceptance_registry": "acceptance-cases.json",
+  "execution_rules": [
+    "One controller mutates each live Playground.",
+    "Each milestone produces maintained JCB source, relevant compiled artifacts, actual test receipts and reviewable commits.",
+    "M06-M10 may run after the operational M04 gate in parallel with M05; native books remain mandatory for full ERP completion.",
+    "Country-specific capability verification is required before affected live use, even before the full M11 regional completion gate.",
+    "Do not claim implementation tests passed because this design registry validates."
+  ],
+  "milestones": [
+    {
+      "id": "M00",
+      "name": "Discovery and current toolchain",
+      "depends_on": [],
+      "release": "R0",
+      "status": "not_started",
+      "owners": [
+        "lead_agent",
+        "farmer"
+      ],
+      "deliverables": [
+        "Discovery decisions and pilot flow",
+        "Current compatible toolchain/provenance receipt",
+        "Authorised source and artifact destinations",
+        "Country activation responsibilities"
+      ],
+      "exit_gate": "Actual scope and environment known; independent synthetic work continues around named unknowns.",
+      "acceptance_case_ids": [
+        "AT-001",
+        "AT-002"
+      ]
+    },
+    {
+      "id": "M01",
+      "name": "Native JCB architecture proof",
+      "depends_on": [
+        "M00"
+      ],
+      "release": "R0",
+      "status": "not_started",
+      "owners": [
+        "jcb_lead",
+        "com_farmcore",
+        "com_farmledger"
+      ],
+      "deliverables": [
+        "Core/Ledger native service bridge",
+        "Minimal Livestock third-owner transaction",
+        "Same-driver rollback/replay/concurrency receipt",
+        "Source rebuild and independent restore"
+      ],
+      "exit_gate": "All P0 service, transaction, API and source-reproduction risks resolved by actual evidence.",
+      "acceptance_case_ids": [
+        "AT-003",
+        "AT-004",
+        "AT-005",
+        "AT-006"
+      ]
+    },
+    {
+      "id": "M02",
+      "name": "Shared Core and Farm Desk",
+      "depends_on": [
+        "M01"
+      ],
+      "release": "R1",
+      "status": "not_started",
+      "owners": [
+        "com_farmcore"
+      ],
+      "deliverables": [
+        "Shared masters and managed vocabularies",
+        "Scope/roles/private documents",
+        "Command/audit/outbox/import foundations",
+        "Farmer-facing workspace"
+      ],
+      "exit_gate": "Persisted identities/relations correct; cross-farm and private-file denials proven.",
+      "acceptance_case_ids": [
+        "AT-007",
+        "AT-008",
+        "AT-009",
+        "AT-010",
+        "AT-011",
+        "AT-013",
+        "AT-015"
+      ]
+    },
+    {
+      "id": "M03",
+      "name": "Stock and trade foundation",
+      "depends_on": [
+        "M02"
+      ],
+      "release": "R1",
+      "status": "not_started",
+      "owners": [
+        "com_farmledger"
+      ],
+      "deliverables": [
+        "Stock quantity/value/reservation commands",
+        "Purchase and sale document chains",
+        "Market cash/payment allocation",
+        "Reconciled accountant export"
+      ],
+      "exit_gate": "No duplicate/partial/unbalanced operational effects; accountant accepts export and approved live document configuration.",
+      "acceptance_case_ids": [
+        "AT-012",
+        "AT-014",
+        "AT-016",
+        "AT-017",
+        "AT-018",
+        "AT-019",
+        "AT-020",
+        "AT-021",
+        "AT-022",
+        "AT-023",
+        "AT-024",
+        "AT-085",
+        "AT-089"
+      ]
+    },
+    {
+      "id": "M04",
+      "name": "Useful farm pilot",
+      "depends_on": [
+        "M03"
+      ],
+      "release": "R1",
+      "status": "not_started",
+      "owners": [
+        "com_farmlivestock",
+        "com_farmwork",
+        "farmer"
+      ],
+      "deliverables": [
+        "Minimal animal/weight/task capture",
+        "Feed-to-herd and expense flow",
+        "Pilot training and usability receipt",
+        "Reconciled sample import and recovery"
+      ],
+      "exit_gate": "Farmer operates selected flows in operational/export mode with tested access and recovery.",
+      "acceptance_case_ids": [
+        "AT-025",
+        "AT-026"
+      ]
+    },
+    {
+      "id": "M05",
+      "name": "Native accounting activation",
+      "depends_on": [
+        "M04"
+      ],
+      "release": "R2",
+      "status": "not_started",
+      "owners": [
+        "com_farmledger",
+        "accountant"
+      ],
+      "deliverables": [
+        "Double-entry/control accounts",
+        "AR/AP/bank/tax/FX/period close",
+        "Financial statements and budgets/assets",
+        "Approved native cutover reconciliation"
+      ],
+      "exit_gate": "Accountant-approved statements, controls and opening balances; every posting path enforces period/idempotency rules.",
+      "acceptance_case_ids": [
+        "AT-027",
+        "AT-028",
+        "AT-029",
+        "AT-030",
+        "AT-031",
+        "AT-032",
+        "AT-033",
+        "AT-034",
+        "AT-035",
+        "AT-036",
+        "AT-037",
+        "AT-038",
+        "AT-039",
+        "AT-040",
+        "AT-041",
+        "AT-088",
+        "AT-091"
+      ]
+    },
+    {
+      "id": "M06",
+      "name": "Full livestock lifecycle",
+      "depends_on": [
+        "M04"
+      ],
+      "release": "R3",
+      "status": "not_started",
+      "owners": [
+        "com_farmlivestock"
+      ],
+      "deliverables": [
+        "Individual/group identity and counts",
+        "Breeding/health/output-specific restrictions",
+        "Movement and external evidence",
+        "Herd and cost reconciliation"
+      ],
+      "exit_gate": "Counts and costs reconcile; restrictions apply across every disposition path.",
+      "acceptance_case_ids": [
+        "AT-042",
+        "AT-043",
+        "AT-044",
+        "AT-045",
+        "AT-046",
+        "AT-047",
+        "AT-048",
+        "AT-090",
+        "AT-092",
+        "AT-093"
+      ]
+    },
+    {
+      "id": "M07",
+      "name": "Crops and gardens",
+      "depends_on": [
+        "M04"
+      ],
+      "release": "R3",
+      "status": "not_started",
+      "owners": [
+        "com_farmcrops"
+      ],
+      "deliverables": [
+        "Plot/cycle allocation",
+        "Inputs/irrigation/observations",
+        "Harvest grades/lots/restrictions",
+        "Cycle cost/yield reports"
+      ],
+      "exit_gate": "Input and harvest effects atomic, traceable and reconcilable.",
+      "acceptance_case_ids": [
+        "AT-049",
+        "AT-050",
+        "AT-051",
+        "AT-052"
+      ]
+    },
+    {
+      "id": "M08",
+      "name": "Woodwork food and manufacturing",
+      "depends_on": [
+        "M04"
+      ],
+      "release": "R3",
+      "status": "not_started",
+      "owners": [
+        "com_farmmake"
+      ],
+      "deliverables": [
+        "Approved recipes/BOMs and operations",
+        "Actual inputs/yield/cost/byproducts",
+        "Independent quality/recall controls",
+        "Genealogy and customer recall report"
+      ],
+      "exit_gate": "Quantity/value/traceability holds under failures, rework and overlapping holds.",
+      "acceptance_case_ids": [
+        "AT-053",
+        "AT-054",
+        "AT-055",
+        "AT-056",
+        "AT-057",
+        "AT-058",
+        "AT-059"
+      ]
+    },
+    {
+      "id": "M09",
+      "name": "Lodging and hunting",
+      "depends_on": [
+        "M04"
+      ],
+      "release": "R3",
+      "status": "not_started",
+      "owners": [
+        "com_farmstay"
+      ],
+      "deliverables": [
+        "Physical capacity/hold/calendar",
+        "Package/deposit/cancellation workflow",
+        "Hunt quota/permit/outcome evidence",
+        "Guest and operational reports"
+      ],
+      "exit_gate": "No concurrent overbooking/quota oversell; commercial and authority states remain distinct.",
+      "acceptance_case_ids": [
+        "AT-060",
+        "AT-061",
+        "AT-062",
+        "AT-063",
+        "AT-064",
+        "AT-065",
+        "AT-066",
+        "AT-067",
+        "AT-087"
+      ]
+    },
+    {
+      "id": "M10",
+      "name": "People equipment and farm operations",
+      "depends_on": [
+        "M04"
+      ],
+      "release": "R3",
+      "status": "not_started",
+      "owners": [
+        "com_farmwork"
+      ],
+      "deliverables": [
+        "Private workforce/time/leave/payroll export",
+        "Assets/maintenance/fuel/meter records",
+        "Water/rain/inspection/incident workflow",
+        "Reconciled job costs and reminders"
+      ],
+      "exit_gate": "No duplicate labour/parts costs; personnel privacy and export revisions verified.",
+      "acceptance_case_ids": [
+        "AT-068",
+        "AT-069",
+        "AT-070",
+        "AT-071",
+        "AT-072"
+      ]
+    },
+    {
+      "id": "M11",
+      "name": "Three country packs and adapters",
+      "depends_on": [
+        "M05",
+        "M06",
+        "M07",
+        "M08",
+        "M09",
+        "M10"
+      ],
+      "release": "R4",
+      "status": "not_started",
+      "owners": [
+        "regional_reviewers",
+        "com_farmcore"
+      ],
+      "deliverables": [
+        "Approved capability matrix by country",
+        "Effective-date sources and conflicts resolved",
+        "Accountant/bank/provider contracts",
+        "Country-specific fixtures and evidence"
+      ],
+      "exit_gate": "Enable only verified capabilities; exact jurisdiction and date evidence retained.",
+      "acceptance_case_ids": [
+        "AT-073",
+        "AT-074",
+        "AT-075"
+      ]
+    },
+    {
+      "id": "M12",
+      "name": "Bounded offline observation drafts",
+      "depends_on": [
+        "M11"
+      ],
+      "release": "R4",
+      "status": "not_started",
+      "owners": [
+        "com_farmcore",
+        "frontend"
+      ],
+      "deliverables": [
+        "Low-risk device draft queue",
+        "Visible sync/retry/conflict states",
+        "Revocation and local purge controls",
+        "Offline-loss and replay receipts"
+      ],
+      "exit_gate": "No duplicate or unauthorised effects; no offline financial/stock/capacity confirmation.",
+      "acceptance_case_ids": [
+        "AT-076",
+        "AT-077"
+      ]
+    },
+    {
+      "id": "M13",
+      "name": "Full-system hardening",
+      "depends_on": [
+        "M05",
+        "M06",
+        "M07",
+        "M08",
+        "M09",
+        "M10",
+        "M11",
+        "M12"
+      ],
+      "release": "R4",
+      "status": "not_started",
+      "owners": [
+        "independent_test",
+        "security",
+        "operations"
+      ],
+      "deliverables": [
+        "Role/API/immutability review",
+        "Native concurrency/performance",
+        "Fresh/upgrade/disabled-module matrix",
+        "Rebuild/restore and accessibility evidence"
+      ],
+      "exit_gate": "All required cases pass; no critical/high integrity or access defect.",
+      "acceptance_case_ids": [
+        "AT-078",
+        "AT-079",
+        "AT-080",
+        "AT-081",
+        "AT-086"
+      ]
+    },
+    {
+      "id": "M14",
+      "name": "Migration and farm cutover",
+      "depends_on": [
+        "M13"
+      ],
+      "release": "R4",
+      "status": "not_started",
+      "owners": [
+        "migration_lead",
+        "farmer",
+        "accountant"
+      ],
+      "deliverables": [
+        "Staged imports and control reconciliation",
+        "Rehearsed fallback/recovery",
+        "Role training and realistic day",
+        "Authorised live cutover receipt"
+      ],
+      "exit_gate": "Signed opening/control reconciliation and tested recovery; live change explicitly authorised.",
+      "acceptance_case_ids": [
+        "AT-082",
+        "AT-083"
+      ]
+    },
+    {
+      "id": "M15",
+      "name": "Supported release and handoff",
+      "depends_on": [
+        "M14"
+      ],
+      "release": "R4",
+      "status": "not_started",
+      "owners": [
+        "release_owner",
+        "support_owner"
+      ],
+      "deliverables": [
+        "Installers/sources/checksums/manifests",
+        "Country capabilities and limitations",
+        "Operations/support/training package",
+        "Independent-agent reproduction"
+      ],
+      "exit_gate": "Farmer can operate and maintainer can rebuild/recover the agreed product.",
+      "acceptance_case_ids": [
+        "AT-084"
+      ]
+    }
+  ]
+}

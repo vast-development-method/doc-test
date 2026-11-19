@@ -1,0 +1,2617 @@
+{
+  "schema_version": "1.0.0",
+  "title": "Farm ERP acceptance design and implementation test backlog",
+  "researched_on": "2026-11-19",
+  "status": "design_only_not_executed",
+  "purpose": "Concrete acceptance contracts for the implementing agent. This file records no runtime test execution or passing result.",
+  "source_documents": [
+    "../ARCHITECTURE.md",
+    "../DOMAIN_MODEL.md",
+    "../FINANCE_STOCK_AND_COSTING.md",
+    "../PRODUCT_SCOPE.md",
+    "../research/ERP_REFERENCE_COMPARISON.md",
+    "../research/ERP_WORKFLOW_PATTERNS.md"
+  ],
+  "conventions": {
+    "fixture_identity": "Letters and fixture names are scenario labels, not fabricated production GUIDs. The implementation harness creates real records and records returned identifiers.",
+    "amounts": "All numerical examples are synthetic. Decimal expected values are expressed in text exactly; implementations use the declared decimal arithmetic and amount precision, never binary floating point for postings.",
+    "tax_and_rates": "Tax and foreign-exchange fixtures assert no current legal rate or market quote. Country activation needs its own reviewed evidence.",
+    "baseline_isolation": "Each case runs in an isolated fixture or records a complete baseline so unrelated rows cannot change the expected controls.",
+    "owner_meaning": "owner_component is the domain whose acceptance is being judged; collaborating_components retain their own table ownership and share the required outer transaction.",
+    "status_rule": "Every case starts not_run. Evidence must record the actual source/build/runtime profile, actor/scope, operation inputs, before/after durable reads and outcome before status can change.",
+    "execution_rule": "No runtime tests were performed when authoring this backlog. Playground checks alone do not prove production database concurrency, delivery, restore or regulated behavior.",
+    "release_rule": "M00-M01 feed R0; R1 pilot ends M04; R2 native books ends M05; R3 enterprise workflows span M06-M10; R4 country/integration/offline/hardening/cutover/release spans M11-M15.",
+    "failure_rule": "A failed command preserves its pre-command durable business state unless a case explicitly describes prior independent committed stages or an external uncertain outcome.",
+    "final_review_rule": "Reference-document fixtures and static documentation checks are evidence for design quality, not substitutes for executing these cases on the implementation.",
+    "financial_mode_rule": "M06-M10 ordinary domain cases can run after M04 in operational/export mode; their source quantities, values, claims and exports must reconcile. Expectations explicitly naming native journals/controls are repeated when native mode is enabled. Native-specific M05 cases are mandatory for R2 and full ERP release; absence of native accounting does not block otherwise independent operational enterprise development."
+  },
+  "evidence_required_for_execution": [
+    "Case ID and source revision",
+    "JCB source/export revision and compiled extension checksums",
+    "Joomla/JCB/PHP/database versions, isolation and relevant configuration",
+    "Actor permissions, organisation/farm scope and fixture record IDs",
+    "Submitted command request key and redacted canonical payload",
+    "Before/after independent durable record reads and reconciled control totals",
+    "Screenshots or API result where the operator-visible outcome matters",
+    "Fault injection/concurrent connection schedule where applicable",
+    "Observed result, reviewer and any remaining limitation"
+  ],
+  "cases": [
+    {
+      "id": "AT-001",
+      "title": "Approve an explicit discovery profile before implementation",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [],
+      "milestone": "M00",
+      "release_gate": {
+        "release": "R0",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "document_review",
+      "preconditions": [
+        "Farmer discovery identifies the actual legal entity, farms, enterprises, users, devices, current accounting system and hosting choice."
+      ],
+      "action": "Record and approve one discovery profile, including enabled initial country/currency, module scope, data sources and pilot acceptance actors.",
+      "expected_persistent_result": [
+        "One versioned discovery profile identifies one legal entity and an explicit functional currency from NAD, ZAR or BWP.",
+        "Unknown facts are listed as unresolved decisions with an owner and activation consequence; no invented permit, wage, tax or bank-integration settings are approved.",
+        "No application business rows or external communications are created by this review."
+      ],
+      "failure_result": [
+        "Any unresolved fact that determines a regulated capability prevents activation of that capability; implementation may continue on independently specified synthetic flows."
+      ]
+    },
+    {
+      "id": "AT-002",
+      "title": "Record the actual source and runtime compatibility profile",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [],
+      "milestone": "M00",
+      "release_gate": {
+        "release": "R0",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "document_review",
+      "preconditions": [
+        "The named JCB/Playground skills and three ERP documentation repositories are available for inspection."
+      ],
+      "action": "Persist the inspected repository SHAs and the intended Joomla, JCB, PHP, database engine/version, collation and isolation profile.",
+      "expected_persistent_result": [
+        "One build profile distinguishes documentation revisions from runtime versions and observed capability from proposed behavior.",
+        "The implementation evidence register records no runtime case as passed merely because a reference repository contains a passing fixture.",
+        "Exact source identity and attribution are retained for any imported reusable artifact."
+      ],
+      "failure_result": [
+        "A missing runtime version or unproven shared-class placement is an architecture blocker, not a successful compatibility claim."
+      ]
+    },
+    {
+      "id": "AT-003",
+      "title": "Compile native master/detail entities and database constraints",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M01",
+      "release_gate": {
+        "release": "R0",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "playground_and_production_like",
+      "preconditions": [
+        "A disposable Playground and a separate production-like test installation use the recorded build profile.",
+        "Native JCB definitions exist for a master and independently queryable detail view."
+      ],
+      "action": "Compile and install Core plus Ledger proof components; create one master with two detail records and inspect generated SQL and readback.",
+      "expected_persistent_result": [
+        "Exactly one master and two distinct detail rows persist; each detail has its own numeric primary key and application GUID.",
+        "A detail GUID reference resolves to the correct master after export/import; JCB definition GUIDs remain separate from application record GUIDs.",
+        "Required unique keys, reference indexes and decimal/date types are present in the installed schema and are included in the build evidence."
+      ],
+      "failure_result": [
+        "Missing constraints, JSON-only transactional children or generated-code hand edits fail the architecture gate."
+      ]
+    },
+    {
+      "id": "AT-004",
+      "title": "Rollback one cross-component command on the same connection",
+      "owner_component": "com_farmlivestock",
+      "collaborating_components": [
+        "com_farmcore",
+        "com_farmledger"
+      ],
+      "milestone": "M01",
+      "release_gate": {
+        "release": "R0",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Proof services for Core, Ledger and minimal Livestock participate in one outer unit of work.",
+        "One feed balance contains 10.000000 units worth NAD 100.00; no proof animal event or feed effects exist."
+      ],
+      "action": "Begin a Livestock proof command, insert an animal event, issue 2 feed units to its enterprise, enqueue an outbox intent, then inject an exception before final source state.",
+      "expected_persistent_result": [
+        "After rollback, feed stock remains 10.000000 and value NAD 100.00.",
+        "No proof animal event, stock entry, valuation entry, journal, committed command result or outbox intent from the failed command remains.",
+        "Connection tracing records one participating database connection and no inner commit."
+      ],
+      "failure_result": [
+        "Any surviving required effect or second connection used for synchronous owner writes fails the gate."
+      ]
+    },
+    {
+      "id": "AT-005",
+      "title": "Load shared contracts once and reject incompatible dependencies",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [
+        "com_farmledger",
+        "com_farmmake"
+      ],
+      "milestone": "M01",
+      "release_gate": {
+        "release": "R0",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "playground_and_production_like",
+      "preconditions": [
+        "Core owns the shared contract namespace; Ledger and one satellite reference it.",
+        "The build profile defines a tested compatible contract version and an intentionally incompatible test version."
+      ],
+      "action": "Install components in documented order, resolve services in both callers, then attempt activation with the incompatible dependency profile.",
+      "expected_persistent_result": [
+        "The compatible installation resolves the same owned contract without duplicate class definitions.",
+        "The incompatible combination does not activate dependent business commands and preserves existing records.",
+        "No separately hand-maintained runtime package is required outside the preserved JCB source."
+      ],
+      "failure_result": [
+        "A duplicate class error, silent fallback to another implementation or partially enabled incompatible component fails the gate."
+      ]
+    },
+    {
+      "id": "AT-006",
+      "title": "Rebuild the proof installation solely from retained JCB source",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M01",
+      "release_gate": {
+        "release": "R0",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "fresh_installation",
+      "preconditions": [
+        "A verified proof build, its native JCB source/export and extension checksums are retained.",
+        "A fresh independent test environment has no generated output from the original build."
+      ],
+      "action": "Import the retained JCB source, compile, install and repeat the one-master/two-detail protected-command workflow.",
+      "expected_persistent_result": [
+        "The same logical entities, relationships, permissions and protected behavior are present after rebuild.",
+        "One new master and exactly two linked detail rows persist in the fresh fixture.",
+        "Build receipts identify imported source, compiler/runtime profile, compiled checksum and operator evidence; no manual generated-file patch is needed."
+      ],
+      "failure_result": [
+        "A missing Power, template, rule, relation or route that requires hand repair fails source portability."
+      ]
+    },
+    {
+      "id": "AT-007",
+      "title": "Use one party identity across customer and supplier roles",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M02",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "playground_and_production_like",
+      "preconditions": [
+        "Party P has one application GUID and no trade documents.",
+        "Authorized user may manage both customer and supplier roles."
+      ],
+      "action": "Add customer and supplier roles to P and create one sales draft and one purchase draft referencing P.",
+      "expected_persistent_result": [
+        "Exactly one party row and two role relationships exist for P.",
+        "Both drafts reference the same party GUID while retaining their own document kind and child identities.",
+        "Changing P display name does not change its GUID or rewrite previously issued document address/name snapshots."
+      ],
+      "failure_result": [
+        "Attempting to add the same overlapping role again is rejected or returns the existing relationship without a second active role."
+      ]
+    },
+    {
+      "id": "AT-008",
+      "title": "Enforce farm scope across lists, selectors, exports and API calls",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M02",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "http_roles_and_database",
+      "preconditions": [
+        "User U has stock-read permission for Farm A only.",
+        "One stock document belongs to Farm A and one to Farm B; both are in the same organisation."
+      ],
+      "action": "As U, query lists, modal selectors, report export and direct document routes using the known Farm B identifier.",
+      "expected_persistent_result": [
+        "Only Farm A records are returned in every collection and export.",
+        "No Farm B document payload, filename, amount, internal note or linked target is disclosed.",
+        "No business record changes; denied attempts are recorded under the approved redaction policy."
+      ],
+      "failure_result": [
+        "Any successful direct lookup or selector leak fails even if the normal navigation hides Farm B."
+      ]
+    },
+    {
+      "id": "AT-009",
+      "title": "Protect private evidence files and apply revocation immediately",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [],
+      "milestone": "M02",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "http_roles_and_database",
+      "preconditions": [
+        "Private document D is linked to a Farm A record and its stored bytes have a known checksum.",
+        "User U initially has read access, then the user_scope grant is revoked."
+      ],
+      "action": "Download D while authorized, revoke access, then retry the same protected URL, guessed storage path, thumbnail and export attachment route.",
+      "expected_persistent_result": [
+        "The authorized response checksum equals D original checksum.",
+        "Every post-revocation route refuses the private bytes and protected metadata without creating a public copy.",
+        "D, its link and evidentiary checksum remain unchanged; revocation is effective server-side without waiting for a page refresh."
+      ],
+      "failure_result": [
+        "A reusable public storage URL, unprotected thumbnail or stale authorized session download fails the gate."
+      ]
+    },
+    {
+      "id": "AT-010",
+      "title": "Validate managed uploads without executing supplied content",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [],
+      "milestone": "M02",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "http_roles_and_database",
+      "preconditions": [
+        "The approved file policy defines allowed types and maximum sizes for invoice and permit evidence.",
+        "Fixtures include a valid PDF, an oversized file, a MIME/extension mismatch and executable content disguised as an image."
+      ],
+      "action": "Submit each fixture through UI and direct upload endpoints, then inspect storage references and download behavior.",
+      "expected_persistent_result": [
+        "Only the permitted PDF is accepted and linked to the authorized owning record with size, MIME and checksum.",
+        "Rejected fixtures create no active document link and no executable publicly served file.",
+        "A stored original cannot be overwritten silently by uploading another file with the same display name."
+      ],
+      "failure_result": [
+        "Client-only validation, executable storage or cross-farm attachment linkage fails the gate."
+      ]
+    },
+    {
+      "id": "AT-011",
+      "title": "Replay a committed command and reject request-key payload changes",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M02",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Receipt command K for 5.000000 units has committed and its response was lost.",
+        "The unique receipt scope is organisation plus command type plus request key."
+      ],
+      "action": "Retry K unchanged, then retry K with quantity 6.000000.",
+      "expected_persistent_result": [
+        "Unchanged K returns the stored receipt/result identity and creates zero additional stock, value, audit-business-effect or outbox-intent rows.",
+        "Changed K is rejected as a payload conflict; the original 5.000000-unit result and canonical payload hash remain unchanged."
+      ],
+      "failure_result": [
+        "Returning a new receipt or replacing the prior result fails idempotency."
+      ]
+    },
+    {
+      "id": "AT-012",
+      "title": "Reject duplicate natural effects even with a different request key",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [
+        "com_farmcore"
+      ],
+      "milestone": "M03",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Sales invoice I revision 1 already has its unique source posting.",
+        "A second command uses a different request key but names the same source, line, effect kind and revision."
+      ],
+      "action": "Attempt the second source posting concurrently with an ordinary read of I.",
+      "expected_persistent_result": [
+        "Exactly one effect set for I revision 1 persists.",
+        "No duplicate source values are accepted merely because the second command has a new transport key.",
+        "The independent read resolves I to the original durable result."
+      ],
+      "failure_result": [
+        "A second balanced journal or duplicate stock movement fails the gate."
+      ]
+    },
+    {
+      "id": "AT-013",
+      "title": "Reject stale aggregate edits",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M02",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "http_roles_and_database",
+      "preconditions": [
+        "Two forms load draft D at version 5.",
+        "Writer A changes quantity to 7.000000 and commits version 6."
+      ],
+      "action": "Writer B submits its version-5 form with quantity 8.000000.",
+      "expected_persistent_result": [
+        "D remains version 6 with quantity 7.000000.",
+        "Writer B receives a conflict identifying that a newer version exists without overwriting A changes.",
+        "No downstream posting is created from the rejected stale edit."
+      ],
+      "failure_result": [
+        "A silent last-write-wins update or forced refresh that loses data fails the gate."
+      ]
+    },
+    {
+      "id": "AT-014",
+      "title": "Allocate unique document numbers under contention",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M03",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "two_database_connections",
+      "preconditions": [
+        "One document number series has next sequence 101.",
+        "Two independent commands issue distinct documents in the same organisation, kind and series."
+      ],
+      "action": "Run both issue operations concurrently, then cancel the first issued document and issue a third.",
+      "expected_persistent_result": [
+        "The first two issued documents have distinct series numbers 101 and 102 in whichever commit order is accepted.",
+        "The third issued document receives 103; cancelling the first does not reuse 101.",
+        "Every issued/cancelled number resolves to one document; any permitted allocation gap has audit evidence."
+      ],
+      "failure_result": [
+        "Duplicate numbers, silent sequence reset or number reuse fails the gate."
+      ]
+    },
+    {
+      "id": "AT-015",
+      "title": "Preserve packaging conversions and prohibit head-to-mass assumptions",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [
+        "com_farmledger",
+        "com_farmlivestock"
+      ],
+      "milestone": "M02",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "playground_and_production_like",
+      "preconditions": [
+        "Feed product has a 25 kg bag conversion and base unit kg.",
+        "Cattle use head identity with independent kg weight observations."
+      ],
+      "action": "Receive 10 bags, then change the future bag specification to 20 kg; attempt to convert five cattle to stock kg through a generic fixed conversion.",
+      "expected_persistent_result": [
+        "The issued receipt retains its factor 25 and base quantity 250.000000 kg.",
+        "A new draft may select the approved new factor 20 without changing the prior receipt.",
+        "No fixed head-to-kg conversion or additional cattle stock is created by a weight observation."
+      ],
+      "failure_result": [
+        "Cross-dimensional conversion without an explicit valid measured product rule is rejected; historical receipt quantity remains unchanged."
+      ]
+    },
+    {
+      "id": "AT-016",
+      "title": "Blend weighted-average receipt value at the defined warehouse pool",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M03",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Pool P in Warehouse A contains 10.000000 units worth NAD 200.00.",
+        "A new receipt is 10.000000 units worth NAD 300.00 in a different lot of the same product."
+      ],
+      "action": "Post the receipt and then issue 4.000000 units from the physically eligible lot.",
+      "expected_persistent_result": [
+        "P holds 20.000000 units and NAD 500.00 immediately after receipt, average NAD 25.000000.",
+        "The issue carries NAD 100.00; P then holds 16.000000 units and NAD 400.00.",
+        "Lot selection controls traceability, not an unconfigured different financial cost method."
+      ],
+      "failure_result": [
+        "A failed receipt or issue leaves its complete pre-command quantity, value and source state unchanged."
+      ]
+    },
+    {
+      "id": "AT-017",
+      "title": "Serialize two issues against the last stock",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M03",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "two_database_connections",
+      "preconditions": [
+        "One eligible pool/lot has 10.000000 units and no reservations.",
+        "Two authorized different commands each request 6.000000 units."
+      ],
+      "action": "Synchronize both availability reads and execute the two issues under the implemented locking policy.",
+      "expected_persistent_result": [
+        "Exactly one 6.000000-unit issue commits; on-hand becomes 4.000000.",
+        "The other command is rejected after rereading current availability or receives a bounded retry outcome that ultimately cannot post 6.000000.",
+        "There is one accepted source transition and one corresponding movement/value set."
+      ],
+      "failure_result": [
+        "Negative quantity, two accepted issues, lost movement or stale absolute balance overwrite fails the gate."
+      ]
+    },
+    {
+      "id": "AT-018",
+      "title": "Create an absent stock balance safely under simultaneous receipts",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M03",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "two_database_connections",
+      "preconditions": [
+        "The exact product/lot/location/ownership balance key does not yet exist.",
+        "Receipt A is 3.000000 units at total NAD 30.00; receipt B is 4.000000 units at total NAD 80.00."
+      ],
+      "action": "Post both receipts concurrently against the previously absent balance.",
+      "expected_persistent_result": [
+        "One balance row exists for the exact unique key, with 7.000000 units and aggregate value NAD 110.00.",
+        "Both distinct receipt movements persist exactly once.",
+        "The pool rate is derived from carried value and quantity at configured precision; rounded rate does not replace the exact NAD 110.00 value."
+      ],
+      "failure_result": [
+        "Two balance rows, quantity 3 or 4, or only one receipt value fails the gate."
+      ]
+    },
+    {
+      "id": "AT-019",
+      "title": "Consume and release reservations exactly once",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M03",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Stock is 10.000000 units.",
+        "Order A reserves 7.000000; Order B has no reservation."
+      ],
+      "action": "Deliver 4.000000 for A, attempt to deliver 4.000000 for B, then cancel A remaining demand twice.",
+      "expected_persistent_result": [
+        "After A delivery on-hand is 6.000000, A active reserved quantity is 3.000000 and freely available is 3.000000.",
+        "B request for 4.000000 is rejected.",
+        "After A cancellation, reservation is released once and available is 6.000000; the repeat cancellation creates no extra availability."
+      ],
+      "failure_result": [
+        "Consuming another order reservation or releasing more than the outstanding claim fails the gate."
+      ]
+    },
+    {
+      "id": "AT-020",
+      "title": "Conserve owned stock through dispatch and transit receipt",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M03",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Warehouse A contains 10.000000 units worth NAD 250.00; owned transit and Warehouse B are empty."
+      ],
+      "action": "Dispatch 2.000000 to transit, stop before receipt, then receive the same transfer at B and retry receipt.",
+      "expected_persistent_result": [
+        "After dispatch A has 8.000000/NAD 200.00 and transit has 2.000000/NAD 50.00; B remains zero.",
+        "After receipt A remains 8.000000/NAD 200.00, transit is zero and B has 2.000000/NAD 50.00.",
+        "Organisation total stays 10.000000/NAD 250.00; duplicate receipt creates no extra pair."
+      ],
+      "failure_result": [
+        "Injected failure inside either stage leaves that whole stage uncommitted; a dispatch header cannot disagree with its paired source/transit effects."
+      ]
+    },
+    {
+      "id": "AT-021",
+      "title": "Distinguish physical lot holds from valuation and FEFO picking",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M03",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "http_roles_and_database",
+      "preconditions": [
+        "Product P has two lots in one valuation pool: L1 quantity 4.000000 expires 2027-04-10; L2 quantity 6.000000 expires 2027-04-20.",
+        "L1 is quarantined; both lots are included in physical on-hand."
+      ],
+      "action": "On 2027-04-09 request a normal sale issue of 5.000000 using FEFO, then attempt direct issue from L1.",
+      "expected_persistent_result": [
+        "Normal picking selects 5.000000 from L2; total remaining on-hand is 5.000000, including quarantined L1 quantity 4.000000.",
+        "L1 remains unchanged and ineligible for ordinary sale; direct issue is denied under the same policy.",
+        "Financial cost uses the shared pool method and is not changed to lot-specific FIFO by the selector."
+      ],
+      "failure_result": [
+        "Counting all physical stock as freely available or bypassing hold through a direct route fails the gate."
+      ]
+    },
+    {
+      "id": "AT-022",
+      "title": "Reconcile a stale physical count with intervening movements",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M03",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Count session records 10.000000 at cutoff T1.",
+        "A legitimate later issue of 2.000000 commits at T2; current balance is 8.000000.",
+        "The counter observation of 9.000000 is explicitly stated to be at T1."
+      ],
+      "action": "Attempt to post the old count unchanged after T2, then approve a reconciled count correction using its cutoff and intervening issue.",
+      "expected_persistent_result": [
+        "The unreconciled stale submission is rejected for review.",
+        "The approved discrepancy is minus 1.000000 at the permitted posting boundary, leaving current on-hand 7.000000 after the legitimate 2.000000 issue.",
+        "The count retains observation time, original snapshot, intervening movement reference, approval and correction identity."
+      ],
+      "failure_result": [
+        "Setting the current balance directly to 9.000000 or deleting the intervening issue fails the gate."
+      ]
+    },
+    {
+      "id": "AT-023",
+      "title": "Match partial receipts and supplier bills by source line",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M03",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Purchase order has one line for 10.000000 units at NAD 100.00 each; over-receipt and over-bill tolerances are zero.",
+        "Six units have been received; no bill has been approved."
+      ],
+      "action": "Approve a bill for six units, then attempt another bill for five against the same received source line.",
+      "expected_persistent_result": [
+        "The first bill is NAD 600.00 with quantity 6.000000 linked to the actual receipt and order line.",
+        "Four ordered units remain unreceived; zero received units remain unbilled.",
+        "The second five-unit bill is rejected without changing stock, payable or billed quantity."
+      ],
+      "failure_result": [
+        "Matching only by product, billing the same received quantity twice or silently exceeding tolerance fails the gate."
+      ]
+    },
+    {
+      "id": "AT-024",
+      "title": "Close a farmers market shift with a separate shortage",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M03",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "playground_and_production_like",
+      "preconditions": [
+        "Opening cash is NAD 200.00.",
+        "Posted sales include NAD 500.00 cash and NAD 300.00 electronic tender; a linked NAD 50.00 cash refund exists.",
+        "Cashier counts NAD 640.00."
+      ],
+      "action": "Close the shift and request approval of the cash difference.",
+      "expected_persistent_result": [
+        "Expected drawer cash is NAD 650.00; counted cash is NAD 640.00; shortage is NAD 10.00.",
+        "Electronic tender NAD 300.00 is tracked separately from cash and from bank settlement.",
+        "One reasoned shortage adjustment is created only on approval; original sales, refunds and opening float stay immutable."
+      ],
+      "failure_result": [
+        "Editing the opening float to hide the shortage, or treating electronic tender as drawer cash, is rejected."
+      ]
+    },
+    {
+      "id": "AT-025",
+      "title": "Export a complete operational pilot without claiming native books",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [
+        "com_farmcore"
+      ],
+      "milestone": "M04",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "playground_and_production_like",
+      "preconditions": [
+        "Organisation is in operational/export mode.",
+        "Approved trade, payment and stock records exist with stable GUIDs and currency snapshots.",
+        "A customer display name starts with an equals sign."
+      ],
+      "action": "Generate the accountant export twice at the same source watermark and inspect the UI/report menu and exported text fields.",
+      "expected_persistent_result": [
+        "Each artifact identifies schema version, source watermark, record GUIDs, functional/document currencies and exact control totals.",
+        "The two exports represent the same source population; generating them creates no journal or duplicate payable.",
+        "Spreadsheet-dangerous text is safely serialized without changing the underlying business name.",
+        "No statutory trial balance or native-posted claim is exposed in operational mode."
+      ],
+      "failure_result": [
+        "Missing source rows, duplicate effects, spreadsheet formula execution or false native-book status fails the pilot gate."
+      ]
+    },
+    {
+      "id": "AT-026",
+      "title": "Complete the minimum pilot livestock and task slice",
+      "owner_component": "com_farmlivestock",
+      "collaborating_components": [
+        "com_farmcore",
+        "com_farmwork"
+      ],
+      "milestone": "M04",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "farmer_usability_and_database",
+      "preconditions": [
+        "Pilot has one farm, two individually identified cattle, an authorized supervisor and a worker task view.",
+        "Full later breeding and payroll capabilities are disabled."
+      ],
+      "action": "Create one cattle-check task, record one weight observation for each animal, complete the task and review the daily workspace.",
+      "expected_persistent_result": [
+        "Exactly two animals remain; two new weight observations and one completed task persist.",
+        "No extra head count, medicine issue, payroll payment or animal valuation journal is created by weight/task capture.",
+        "The worker sees only assigned operational details and the owner can trace completion to the actor and time."
+      ],
+      "failure_result": [
+        "Needing JCB configuration screens for routine capture or silently generating financial effects fails the pilot workflow."
+      ]
+    },
+    {
+      "id": "AT-027",
+      "title": "Post purchase receipt, bill and payment with reconciled controls",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M05",
+      "release_gate": {
+        "release": "R2",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Native accounting is active with mapped inventory, receipt-clearing, payable and bank accounts in an open period.",
+        "Taxes are disabled in this synthetic fixture."
+      ],
+      "action": "Receive goods worth NAD 1,000.00, approve the matching supplier bill and pay NAD 1,000.00.",
+      "expected_persistent_result": [
+        "Receipt posts inventory debit 1,000.00 and receipt-clearing credit 1,000.00.",
+        "Bill posts receipt-clearing debit 1,000.00 and payable credit 1,000.00.",
+        "Payment posts payable debit 1,000.00 and bank credit 1,000.00.",
+        "Final inventory is 1,000.00, receipt clearing and supplier residual are zero, and every event has one balanced journal/source link."
+      ],
+      "failure_result": [
+        "Any stage missing an account mapping is refused without a partial source or journal transition; previous independently committed stages remain intact."
+      ]
+    },
+    {
+      "id": "AT-028",
+      "title": "Post delivery, invoice and receipt as distinct events",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M05",
+      "release_gate": {
+        "release": "R2",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Goods carrying NAD 600.00 are available; sale price is NAD 1,000.00; taxes disabled.",
+        "Native mappings and period are valid."
+      ],
+      "action": "Deliver the goods, issue the invoice and allocate a NAD 1,000.00 receipt.",
+      "expected_persistent_result": [
+        "Delivery debits cost of sales 600.00 and credits inventory 600.00.",
+        "Invoice debits receivables 1,000.00 and credits revenue 1,000.00.",
+        "Receipt debits bank/cash 1,000.00 and credits receivables 1,000.00; invoice remainder is zero.",
+        "Gross margin is NAD 400.00; cash receipt, revenue and inventory relief remain separately attributable."
+      ],
+      "failure_result": [
+        "Invoicing cannot automatically create a second delivery or repeating receipt cannot create extra cash."
+      ]
+    },
+    {
+      "id": "AT-029",
+      "title": "Rollback stock and finance after a late posting failure",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [
+        "com_farmcore"
+      ],
+      "milestone": "M05",
+      "release_gate": {
+        "release": "R2",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Direct market sale command combines a 2.000000-unit stock issue, invoice, cash receipt and journals.",
+        "Pre-command stock is 5.000000 units worth NAD 250.00; cash and sale effects for this command are zero."
+      ],
+      "action": "Inject an exception after creating stock/value effects but before the final journal and source commit.",
+      "expected_persistent_result": [
+        "Independent read after rollback shows stock 5.000000 and value NAD 250.00.",
+        "No invoice, receipt, cash entry, journal, final source state, command result or outbox intent from the failed sale remains.",
+        "Retry with the same request key after the failure can produce one complete valid sale."
+      ],
+      "failure_result": [
+        "An orphaned posted invoice, stock deduction or partial journal is a release blocker."
+      ]
+    },
+    {
+      "id": "AT-030",
+      "title": "Serialize period closing against an in-flight posting",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M05",
+      "release_gate": {
+        "release": "R2",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "two_database_connections",
+      "preconditions": [
+        "Period P is open and contains no effects from command K.",
+        "A posting command K and a close command C target P concurrently."
+      ],
+      "action": "Pause K after loading P, execute C, then resume under the implemented shared period-lock protocol; repeat with the opposite lock order.",
+      "expected_persistent_result": [
+        "If K owns the lock first, its complete posting commits before C finalizes and C reconciles a population including K.",
+        "If C closes first, K is rejected or restarted and then rejected; K adds zero effects dated in closed P.",
+        "No accepted outcome contains a journal committed into P after its lock without an authorized reopening record."
+      ],
+      "failure_result": [
+        "An unlocked read of open state followed by a post-close write fails the gate."
+      ]
+    },
+    {
+      "id": "AT-031",
+      "title": "Serialize payment allocation against the invoice remainder",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M05",
+      "release_gate": {
+        "release": "R2",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "two_database_connections",
+      "preconditions": [
+        "Invoice I has NAD 100.00 outstanding.",
+        "Two available payments each contain NAD 100.00 and are not yet allocated."
+      ],
+      "action": "Submit full allocations of both payments to I concurrently.",
+      "expected_persistent_result": [
+        "Exactly NAD 100.00 is allocated to I; its remainder becomes zero.",
+        "Only one payment is fully consumed; the other existing payment retains NAD 100.00 unallocated.",
+        "No duplicate allocation or negative invoice remainder persists."
+      ],
+      "failure_result": [
+        "Both requests reading the old remainder and allocating NAD 200.00 fails the gate."
+      ]
+    },
+    {
+      "id": "AT-032",
+      "title": "Preserve invoice-level residuals when applying a credit",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M05",
+      "release_gate": {
+        "release": "R2",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Invoice I is NAD 300.00; payment allocation is NAD 200.00; tax disabled.",
+        "A mapped return draft originally copied three units but is edited to one unit at NAD 100.00."
+      ],
+      "action": "Recompute and issue the NAD 100.00 credit, first as unapplied credit, then explicitly allocate it to I.",
+      "expected_persistent_result": [
+        "Before allocation I has NAD 100.00 due and the credit has NAD 100.00 available, even though net party balance is zero.",
+        "After allocation both document residuals are zero; original invoice, payment and credit identities remain distinct.",
+        "Credit validation uses its recomputed NAD 100.00 total, not the stale mapped NAD 300.00 total."
+      ],
+      "failure_result": [
+        "A zero net customer balance alone cannot mark I settled; editing the posted invoice or credit is refused."
+      ]
+    },
+    {
+      "id": "AT-033",
+      "title": "Recognize foreign receivable settlement gain",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M05",
+      "release_gate": {
+        "release": "R2",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Functional currency NAD; sales invoice BWP 1,000.00 at approved rate 1 BWP = NAD 1.350000000000.",
+        "Settlement is from a NAD bank at 1 BWP = NAD 1.400000000000; no tax or bank fee."
+      ],
+      "action": "Issue the invoice and settle it fully using the second rate.",
+      "expected_persistent_result": [
+        "Invoice stores BWP 1,000.00, NAD 1,350.00 and its original rate snapshot.",
+        "Settlement debits bank NAD 1,400.00, credits receivable NAD 1,350.00 and credits realized exchange gain NAD 50.00.",
+        "Both invoice currency and base residuals are zero; later rate edits do not rewrite either event."
+      ],
+      "failure_result": [
+        "Substituting the payment rate into the invoice or recognizing NAD 1,400.00 sales revenue fails the gate."
+      ]
+    },
+    {
+      "id": "AT-034",
+      "title": "Recognize foreign payable settlement loss separately from fees",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M05",
+      "release_gate": {
+        "release": "R2",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Functional currency NAD; supplier bill BWP 1,000.00 carried at NAD 1,350.00.",
+        "Settlement requires NAD 1,400.00 plus an explicitly recorded NAD 10.00 bank fee."
+      ],
+      "action": "Post the supplier settlement and bank fee.",
+      "expected_persistent_result": [
+        "Debit payable NAD 1,350.00, debit exchange loss NAD 50.00, debit bank-fee expense NAD 10.00 and credit bank NAD 1,410.00.",
+        "The supplier foreign/base residuals are zero and the bank statement reconciles to NAD 1,410.00.",
+        "Invoice rate, settlement rate and fee source remain separately inspectable."
+      ],
+      "failure_result": [
+        "Hiding the fee inside the exchange difference or leaving an unexplained base residual fails the gate."
+      ]
+    },
+    {
+      "id": "AT-035",
+      "title": "Clear a final partial-payment rounding residual deterministically",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M05",
+      "release_gate": {
+        "release": "R2",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Foreign invoice face amount is BWP 3.00 with exact approved rate 1 BWP = NAD 1.333333333333; carried base total is NAD 4.00.",
+        "Two BWP 1.00 payments have each released NAD 1.33 under the declared allocation policy; remaining base carrying amount is NAD 1.34."
+      ],
+      "action": "Settle the final BWP 1.00 using the same approved rate and a NAD 1.33 bank settlement.",
+      "expected_persistent_result": [
+        "Final allocation releases the whole NAD 1.34 carrying remainder and BWP 1.00 foreign remainder.",
+        "Final settlement debits bank NAD 1.33 and the approved settlement-rounding/exchange-loss account NAD 0.01, and credits receivable NAD 1.34.",
+        "Both residuals become exactly zero; total released carrying value is NAD 4.00, not NAD 3.99."
+      ],
+      "failure_result": [
+        "Leaving a phantom one-cent receivable or silently altering prior settlements fails the gate."
+      ]
+    },
+    {
+      "id": "AT-036",
+      "title": "Reject missing, future-only and ambiguous rate/tax versions",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M05",
+      "release_gate": {
+        "release": "R2",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "A foreign draft dated 2027-01-10 has no approved rate applicable on that date; a later rate begins 2027-01-11.",
+        "A second fixture deliberately has two overlapping approved tax versions for the same use."
+      ],
+      "action": "Attempt to issue each draft, then resolve each reference-data problem through an authorized dated approval and retry.",
+      "expected_persistent_result": [
+        "Initial requests create no posted document, stock effect, journal or final command result.",
+        "No future-only rate or implicit rate 1 is selected; ambiguous tax selection is refused.",
+        "After correction, exactly one issued document per command uses one recorded applicable rate/tax version."
+      ],
+      "failure_result": [
+        "Fallback to a convenient later rate, arbitrary overlapping rule or mixed tax snapshots fails the gate."
+      ]
+    },
+    {
+      "id": "AT-037",
+      "title": "Keep historic stock order fixed while recording a late real-world event",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M05",
+      "release_gate": {
+        "release": "R2",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "A pool has a posted receipt followed by a costed delivery in period P.",
+        "Initial release policy forbids historical cost reorder/replay; current open period is Q."
+      ],
+      "action": "Attempt to insert an earlier cost-affecting stock entry before the delivery, then submit an approved current-period correction with the true occurrence date retained.",
+      "expected_persistent_result": [
+        "Backdated reorder is refused and every original valuation/journal row stays unchanged.",
+        "The authorized correction is a new linked effect in Q with original occurrence date, reason and approver.",
+        "Reports distinguish real occurrence, posting date and adjustment; no unimplemented background cost replay is scheduled."
+      ],
+      "failure_result": [
+        "Accepting the historical date while leaving dependent later costs stale fails the gate."
+      ]
+    },
+    {
+      "id": "AT-038",
+      "title": "Deplete a weighted-average pool without manufacturing value",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M05",
+      "release_gate": {
+        "release": "R2",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "An initially empty pool receives 54.000000 jars at aggregate NAD 900.00 and has no other receipts.",
+        "Amount rounding is half-up to two decimals with a deterministic final-depletion rule."
+      ],
+      "action": "Issue 20.000000 jars, then issue the final 34.000000.",
+      "expected_persistent_result": [
+        "First issue value is NAD 333.33, leaving 34.000000 jars worth NAD 566.67.",
+        "Final issue value is NAD 566.67, leaving quantity 0.000000 and value NAD 0.00.",
+        "Total issued value equals NAD 900.00 even though the displayed unit rate is rounded to six places."
+      ],
+      "failure_result": [
+        "Multiplying a rounded NAD 16.67 by 54 to invent NAD 900.18, or leaving nonzero value at zero stock, fails the gate."
+      ]
+    },
+    {
+      "id": "AT-039",
+      "title": "Revalue only eligible open monetary items at period end",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M05",
+      "release_gate": {
+        "release": "R2",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Open receivable BWP 1,000.00 carries NAD 1,350.00.",
+        "Approved closing rate is 1 BWP = NAD 1.380000000000.",
+        "A purchased inventory pool carries NAD 1,350.00 and is not eligible for currency revaluation."
+      ],
+      "action": "Run approved monetary revaluation and rerun the same period revision.",
+      "expected_persistent_result": [
+        "One adjustment raises the receivable carrying amount to NAD 1,380.00 with NAD 30.00 unrealized gain under the approved template.",
+        "Inventory remains NAD 1,350.00 with unchanged quantity and historical acquisition basis.",
+        "Rerun adds zero duplicate adjustment; unwind/reversal retains a link to that period revision."
+      ],
+      "failure_result": [
+        "Revaluing nonmonetary stock or duplicating the period adjustment fails the gate."
+      ]
+    },
+    {
+      "id": "AT-040",
+      "title": "Post each asset depreciation period once",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [
+        "com_farmwork"
+      ],
+      "milestone": "M05",
+      "release_gate": {
+        "release": "R2",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Asset cost NAD 12,000.00, residual NAD 2,000.00, approved five full annual straight-line periods, no prior depreciation or prorating."
+      ],
+      "action": "Post the five scheduled annual charges and repeat the command for the third period.",
+      "expected_persistent_result": [
+        "Each period posts NAD 2,000.00 expense/depreciation control; total accumulated depreciation is NAD 10,000.00.",
+        "Ending carrying amount is NAD 2,000.00; historical schedule rows retain their journal links.",
+        "Repeating period three produces no new journal or schedule charge."
+      ],
+      "failure_result": [
+        "Changing a future useful-life estimate cannot overwrite already posted periods; a missing mapping prevents that period posting."
+      ]
+    },
+    {
+      "id": "AT-041",
+      "title": "Apply a synthetic effective-dated tax rule and exact rounding",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M05",
+      "release_gate": {
+        "release": "R2",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Synthetic rule T1 is 10 percent through 2027-06-30; T2 is 12 percent from 2027-07-01, with half-open validity and approved status.",
+        "Each fixture invoice has one NAD 100.00 tax-exclusive line and no discount."
+      ],
+      "action": "Issue one invoice on 2027-06-30 and one on 2027-07-01, then revise a future tax master and attempt generic edit of the issued invoices.",
+      "expected_persistent_result": [
+        "First invoice retains net NAD 100.00, tax NAD 10.00, gross NAD 110.00 and T1 identity.",
+        "Second retains net NAD 100.00, tax NAD 12.00, gross NAD 112.00 and T2 identity.",
+        "Issued tax detail and totals remain unchanged by later master edits or generic CRUD."
+      ],
+      "failure_result": [
+        "Wrong boundary version, binary-float imbalance or post-issue mutation fails; these synthetic rates are never activated as country law."
+      ]
+    },
+    {
+      "id": "AT-042",
+      "title": "Conserve grouped livestock through births, losses and split",
+      "owner_component": "com_farmlivestock",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M06",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Unindividualized sheep group G has 20 head.",
+        "No individual animal rows represent those 20 head."
+      ],
+      "action": "Record 3 births, 2 deaths, sale/dispatch of 4 head and split 5 remaining head into new group H.",
+      "expected_persistent_result": [
+        "G progresses 20 -> 23 -> 21 -> 17 -> 12; H ends with 5.",
+        "Combined live owned group count is 17; event history explains births +3, deaths -2 and sold -4 without counting the internal split as loss.",
+        "Every confirmed event has one source identity and repeat submission adds zero head changes."
+      ],
+      "failure_result": [
+        "Negative count, silent group replacement or double-counting both split source and destination fails the gate."
+      ]
+    },
+    {
+      "id": "AT-043",
+      "title": "Individualize animals without counting them twice",
+      "owner_component": "com_farmlivestock",
+      "collaborating_components": [],
+      "milestone": "M06",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Unindividualized group G has 10 head.",
+        "No existing animal identities match the four animals to be registered."
+      ],
+      "action": "Convert four group head into four individually identified animals and assign them to a management group.",
+      "expected_persistent_result": [
+        "Unindividualized count becomes 6 and exactly four animal rows are created; total owned head stays 10.",
+        "Management-group membership contributes a grouping view, not four additional stock-count events.",
+        "Repeated conversion of the same source allocation does not create more animals."
+      ],
+      "failure_result": [
+        "Persisting 10 unindividualized head plus four new independent head fails the gate."
+      ]
+    },
+    {
+      "id": "AT-044",
+      "title": "Preserve animal identity through tag changes and birth replay",
+      "owner_component": "com_farmlivestock",
+      "collaborating_components": [],
+      "milestone": "M06",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Animal A has active identifier 000123 under a scheme that enforces uniqueness.",
+        "Dam D and sire S are registered; neither has a parent cycle."
+      ],
+      "action": "Replace A tag with 000456, attempt duplicate active use of 000456, then record the same calf birth twice with one source key and attempt cyclic parentage.",
+      "expected_persistent_result": [
+        "A retains one GUID and two dated identifier-history rows, preserving leading zeroes; old tag remains historical.",
+        "Exactly one calf animal and one birth event persist for the repeated birth source.",
+        "The duplicate active tag and parent cycle are rejected without partial identifier or parent updates."
+      ],
+      "failure_result": [
+        "Using mutable tag text as the primary animal identity or creating a second calf on retry fails the gate."
+      ]
+    },
+    {
+      "id": "AT-045",
+      "title": "Enforce purpose-specific withdrawal at the exact boundary",
+      "owner_component": "com_farmlivestock",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M06",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "http_roles_and_database",
+      "preconditions": [
+        "Animal A has an approved synthetic sale-for-slaughter hold ending 2027-01-17T08:00:00Z, equivalent to 10:00 local in the fixture zone.",
+        "Movement authority and all other eligibility rules are satisfied."
+      ],
+      "action": "Attempt slaughter dispatch at one second before the hold end and at the exact hold end using UI and direct command routes.",
+      "expected_persistent_result": [
+        "Early dispatch is refused with zero stock/custody movement; the animal and hold records remain unchanged.",
+        "At the exact end, one authorized dispatch may commit and its eligibility snapshot names the rule and release instant.",
+        "The fixture rule is not represented as an actual medicine recommendation or blanket permission for unrelated purposes."
+      ],
+      "failure_result": [
+        "Timezone ambiguity, UI-only validation or treating an absent withdrawal rule as zero days fails the gate."
+      ]
+    },
+    {
+      "id": "AT-046",
+      "title": "Finalize treatment and medicine consumption atomically",
+      "owner_component": "com_farmlivestock",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M06",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "A draft treatment targets a snapshot of animals A and B.",
+        "Medicine lot M has 10.000000 eligible units; actual recorded use is 2.000000.",
+        "All clinically supplied instruction/withdrawal metadata is present and approved for the fixture."
+      ],
+      "action": "Finalize treatment, inject a medicine-post failure in one run, then post successfully and later move B to another herd.",
+      "expected_persistent_result": [
+        "Failed run leaves treatment draft and medicine at 10.000000 with no finalized withdrawal targets.",
+        "Successful run leaves medicine 8.000000, one finalized treatment and exactly targets A and B.",
+        "Later herd changes do not alter who received the treatment or duplicate stock consumption."
+      ],
+      "failure_result": [
+        "Treatment finalization without its required stock effect, missing target snapshot or automatic clinical inference fails the gate."
+      ]
+    },
+    {
+      "id": "AT-047",
+      "title": "Separate animal ownership, custody, movement authority and invoice",
+      "owner_component": "com_farmlivestock",
+      "collaborating_components": [
+        "com_farmledger",
+        "com_farmcore"
+      ],
+      "milestone": "M06",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "http_roles_and_database",
+      "preconditions": [
+        "Animal A is farm-owned at Farm A with purchase cost recorded.",
+        "A sale invoice draft exists, but required movement evidence for destination B is unapproved."
+      ],
+      "action": "Try dispatch, approve valid evidence for the exact subject/date/destination, dispatch to transit and receive at B; separately test an internal owned farm transfer.",
+      "expected_persistent_result": [
+        "Initial dispatch is refused; invoice draft alone changes no physical location or custody.",
+        "Approved dispatch/receipt each persist one linked movement stage and evidence snapshot.",
+        "Internal transfer preserves total owned head and creates no sale revenue; custody changes do not silently change ownership."
+      ],
+      "failure_result": [
+        "Uploading an unreviewed file or paying an invoice cannot bypass movement eligibility."
+      ]
+    },
+    {
+      "id": "AT-048",
+      "title": "Distinguish mortality from sale and preserve confirmed events",
+      "owner_component": "com_farmlivestock",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M06",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Animal A is alive and owned; its current group membership is active.",
+        "No mortality or disposal has been recorded."
+      ],
+      "action": "Confirm mortality with date/reason/evidence, retry, then attempt a normal sale dispatch and generic deletion of the mortality event.",
+      "expected_persistent_result": [
+        "One mortality event persists, A is not live available stock and live head count falls by one exactly once.",
+        "No revenue or customer invoice is automatically created.",
+        "Sale dispatch and generic deletion are refused; any correction uses an authorized linked amendment."
+      ],
+      "failure_result": [
+        "A second mortality decrement or restoration by editing a published flag fails the gate."
+      ]
+    },
+    {
+      "id": "AT-049",
+      "title": "Create crop schedules without inventing stock or cost",
+      "owner_component": "com_farmcrops",
+      "collaborating_components": [
+        "com_farmwork"
+      ],
+      "milestone": "M07",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "playground_and_production_like",
+      "preconditions": [
+        "Crop template has two tasks at days 2-4 and 9-12; cycle starts 2027-04-01.",
+        "No actual inputs, labour or harvest are recorded."
+      ],
+      "action": "Create the cycle and tasks, save it twice, then revise the reusable template.",
+      "expected_persistent_result": [
+        "One cycle and exactly two cycle task instances exist, dated 2027-04-02 to 2027-04-04 and 2027-04-09 to 2027-04-12.",
+        "No stock movements, harvest receipts, labour actuals or financial costs are created by the plan.",
+        "Existing task snapshots remain attributable to the template revision used; future template changes do not rewrite completed work."
+      ],
+      "failure_result": [
+        "Duplicate task creation on save or expected yield posted as real stock fails the gate."
+      ]
+    },
+    {
+      "id": "AT-050",
+      "title": "Block harvest under an approved input restriction",
+      "owner_component": "com_farmcrops",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M07",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "http_roles_and_database",
+      "preconditions": [
+        "Plot P has a draft input application carrying an approved synthetic rule that will restrict harvest until 2027-05-20T08:00:00Z when finalized.",
+        "The recorded input lot has sufficient stock, actual use is 1.500000 units, and this draft has not yet consumed stock. A separate independent draft is used for injected failure."
+      ],
+      "action": "Post input use, attempt harvest one second before release and at the boundary; inject stock failure during a separate input-finalization run.",
+      "expected_persistent_result": [
+        "Successful input finalization consumes exactly 1.500000 and records one plot/cycle application and restriction snapshot.",
+        "Early harvest creates no finished lot or stock receipt; boundary harvest can commit if all other checks pass.",
+        "Failed input stock posting leaves no finalized application or half-created hold."
+      ],
+      "failure_result": [
+        "Direct API harvest bypass, duplicated application consumption or missing restriction treated as zero duration fails the gate."
+      ]
+    },
+    {
+      "id": "AT-051",
+      "title": "Post harvest grades and waste with one approved cost allocation",
+      "owner_component": "com_farmcrops",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M07",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Cycle C has an approved attributable cost pool NAD 1,100.00.",
+        "Harvest actual is 100.000000 kg: 80.000000 saleable and 20.000000 recorded process/grade loss.",
+        "Fixture policy assigns the full 1,100.00 to saleable output and posts loss quantity without fictitious value."
+      ],
+      "action": "Finalize harvest, transfer 10.000000 kg for internal lodge use and sell 15.000000 kg at NAD 30.00/kg.",
+      "expected_persistent_result": [
+        "Finalized harvest receives 80.000000 saleable kg worth NAD 1,100.00 and records 20.000000 loss separately; no second 100 kg receipt is also counted.",
+        "The approved per-saleable-kg cost basis is NAD 13.750000; internal transfer creates no external revenue.",
+        "After the transfer and sale, market stock is 55.000000 kg; sales net value is NAD 450.00."
+      ],
+      "failure_result": [
+        "Posting both gross and net harvest, creating stock for waste or duplicating the crop cost as a new expense fails the gate."
+      ]
+    },
+    {
+      "id": "AT-052",
+      "title": "Retain observation identity, units and missing-value meaning",
+      "owner_component": "com_farmcrops",
+      "collaborating_components": [],
+      "milestone": "M07",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "A field sample has collection, test and result instants and a canonical numeric value with unit.",
+        "A second field-day has no rainfall observation; a third has an explicit 0.000000 mm reading."
+      ],
+      "action": "Import the same sample twice, display it under decimal-dot and decimal-comma locales, and query the rain report.",
+      "expected_persistent_result": [
+        "One sample observation persists and its numeric value/unit does not change with display locale.",
+        "Collection <= test <= result is enforced; invalid temporal order creates no approved result.",
+        "The report distinguishes missing rainfall from a measured zero; neither observation creates an input purchase or treatment recommendation."
+      ],
+      "failure_result": [
+        "Duplicate sample links changing aggregates, locale-dependent numeric decisions or invented zero readings fails the gate."
+      ]
+    },
+    {
+      "id": "AT-053",
+      "title": "Freeze recipe revisions and reject recursive BOMs",
+      "owner_component": "com_farmmake",
+      "collaborating_components": [],
+      "milestone": "M08",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Approved recipe R1 produces 10 units from defined material/packaging quantities.",
+        "Production order P is released against R1."
+      ],
+      "action": "Create R2 with changed quantities, attempt to edit R1 in place, and attempt a multilevel cycle A -> B -> A in a capability-enabled fixture.",
+      "expected_persistent_result": [
+        "P retains R1 identity and original planned quantities; R2 is a separate revision for future orders.",
+        "In-place mutation of a used approved revision is rejected.",
+        "Recursive recipe activation/explosion is rejected without partial demand or work-order creation."
+      ],
+      "failure_result": [
+        "A recipe edit rewriting historical actuals or unbounded recursive explosion fails the gate."
+      ]
+    },
+    {
+      "id": "AT-054",
+      "title": "Post workshop production and sale with cost conserved",
+      "owner_component": "com_farmmake",
+      "collaborating_components": [
+        "com_farmledger",
+        "com_farmwork"
+      ],
+      "milestone": "M08",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Actual timber cost is NAD 500.00, bought parts NAD 100.00 and approved conversion cost NAD 200.00.",
+        "There are no valued by-products, prior finished stock or other receipts; actual output is 10 units.",
+        "The ordinary domain acceptance profile is operational/export mode after M04; repeat financial effects under native accounting when that capability is enabled."
+      ],
+      "action": "Finalize the batch, release quality, deliver and invoice six units at NAD 150.00 each.",
+      "expected_persistent_result": [
+        "One production event consumes the selected input lots and receives 10 units at total NAD 800.00.",
+        "Sale value is NAD 900.00, output cost relieved is NAD 480.00, gross margin is NAD 420.00 and remaining finished stock is four units worth NAD 320.00.",
+        "Conversion cost is attributed once. In operational mode the exact cost source appears once in approved export; in native mode absorption offsets the approved expense/clearing basis once instead of charging a second labour expense."
+      ],
+      "failure_result": [
+        "Any missing input, mapping or required quality result rolls back the complete required production command."
+      ]
+    },
+    {
+      "id": "AT-055",
+      "title": "Separate actual zero input cost from a missing cost basis",
+      "owner_component": "com_farmmake",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M08",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Fixture A consumes a legitimately approved zero-value input and NAD 90.00 eligible conversion cost for 90 output units.",
+        "Fixture B has an unknown input-cost basis with no approved fallback; the finished product historical display rate is NAD 12.00."
+      ],
+      "action": "Complete production under A and attempt completion under B.",
+      "expected_persistent_result": [
+        "A receives 90 units at aggregate NAD 90.00, unit basis NAD 1.000000; zero is retained as a real input cost.",
+        "B remains incomplete with no stock/valuation/journal effects until its missing basis is resolved.",
+        "Neither path silently substitutes the historical NAD 12.00 rate solely because input arithmetic is zero or missing."
+      ],
+      "failure_result": [
+        "Conflating null and zero or silently inventing a finished inventory value fails the gate."
+      ]
+    },
+    {
+      "id": "AT-056",
+      "title": "Allocate main, secondary and recovered output value once",
+      "owner_component": "com_farmmake",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M08",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Consumed material cost NAD 1,000.00; separately valued recovered output NAD 100.00.",
+        "Remaining material cost shares are primary 80 percent and secondary 20 percent; eligible conversion cost NAD 90.00 is assigned only to primary.",
+        "Primary output quantity is 90 units."
+      ],
+      "action": "Finalize the batch and rerun the same completion command.",
+      "expected_persistent_result": [
+        "Recovered output receives NAD 100.00; secondary output receives NAD 180.00; primary output receives NAD 810.00, or NAD 9.000000 per primary unit.",
+        "Total output value is NAD 1,090.00, equal to material plus conversion; no double deduction of recovered output occurs.",
+        "Retry changes no quantities, values or allocation rows."
+      ],
+      "failure_result": [
+        "Cost shares outside their required total, recovered value above allowed pool or unexplained negative primary cost blocks completion."
+      ]
+    },
+    {
+      "id": "AT-057",
+      "title": "Preserve partial production cost and prohibit double consumption",
+      "owner_component": "com_farmmake",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M08",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Order plans 10 outputs; approved material pool is NAD 500.00.",
+        "All materials have moved to work in progress, but only the portion attributable to four outputs is consumed/assigned in the first partial run under the declared fixture method."
+      ],
+      "action": "Receive four outputs at total NAD 200.00, then complete six outputs at total NAD 300.00; retry each partial command.",
+      "expected_persistent_result": [
+        "After first run four outputs carry NAD 200.00 and remaining attributable work in progress is NAD 300.00.",
+        "After completion all 10 outputs carry aggregate NAD 500.00 and work-in-progress remainder is zero.",
+        "Each partial run has distinct actual/source identities; retries duplicate neither consumption nor receipt."
+      ],
+      "failure_result": [
+        "Job-card completion independently creating another receipt, or reusing all original consumption cost on both partial runs, fails the gate."
+      ]
+    },
+    {
+      "id": "AT-058",
+      "title": "Trace recall through production, rework and deliveries",
+      "owner_component": "com_farmmake",
+      "collaborating_components": [
+        "com_farmledger",
+        "com_farmcore"
+      ],
+      "milestone": "M08",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Input lot A feeds output lot B; some B feeds reworked lot C.",
+        "B and C have both remaining stock and delivered sales lines; a separate lot D has no path from A.",
+        "Recorded genealogy proves batch membership only, not individual-jar allocations."
+      ],
+      "action": "Open a recall for A and query upstream/downstream lots, remaining balances and distribution destinations.",
+      "expected_persistent_result": [
+        "A, B and C are included in affected scope; D is excluded.",
+        "All remaining affected saleable quantities are held and known B/C delivery recipients are identified by source lines.",
+        "The report states batch-level possible exposure and makes no unsupported claim that a particular jar excluded A.",
+        "Attempt to introduce a genealogy cycle is rejected."
+      ],
+      "failure_result": [
+        "Missing rework descendants, double-counted stock through joins or unapproved release of held outputs fails the gate."
+      ]
+    },
+    {
+      "id": "AT-059",
+      "title": "Reject lot-state changes through generic CRUD and API bypass",
+      "owner_component": "com_farmmake",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M08",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "http_roles_and_database",
+      "preconditions": [
+        "Output lot L is in quality hold and lacks one required approved quality result.",
+        "User has ordinary production write rights but lacks quality-release authority."
+      ],
+      "action": "Try normal release, direct status update, bulk publish, save-as-copy and direct sale issue of L.",
+      "expected_persistent_result": [
+        "Every bypass refuses release/issue and leaves quality state, stock, value and genealogy unchanged.",
+        "Only the designated release command by an authorized role with all required evidence can change L eligibility.",
+        "The audit identifies denied action and actor without exposing protected lab details unnecessarily."
+      ],
+      "failure_result": [
+        "A Joomla published flag, generated model save or API allowlist omission that releases L fails the gate."
+      ]
+    },
+    {
+      "id": "AT-060",
+      "title": "Price and occupy lodging with half-open room nights",
+      "owner_component": "com_farmstay",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M09",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "playground_and_production_like",
+      "preconditions": [
+        "Two physical rooms are available for local nights 2027-06-10 and 2027-06-11.",
+        "Per-room nightly rates are NAD 900.00 and NAD 1,100.00 respectively; taxes disabled."
+      ],
+      "action": "Confirm a two-room stay arriving 2027-06-10 and departing 2027-06-12, then quote a new arrival on 2027-06-12.",
+      "expected_persistent_result": [
+        "First stay stores four room-night claims and net price NAD 4,000.00.",
+        "No night of 2027-06-12 is consumed by the first stay.",
+        "New arrival can claim the departure-date night if operational turnaround/block rules permit it; price and occupancy use the same interval convention."
+      ],
+      "failure_result": [
+        "Departure-inclusive occupancy or counting three charged nights fails the gate."
+      ]
+    },
+    {
+      "id": "AT-061",
+      "title": "Share capacity across package aliases and concurrent bookings",
+      "owner_component": "com_farmstay",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M09",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "two_database_connections",
+      "preconditions": [
+        "Only room R is sellable on night N.",
+        "Packages P1 and P2 both reference R; two clerks independently request the night through different packages."
+      ],
+      "action": "Confirm both requests concurrently.",
+      "expected_persistent_result": [
+        "Exactly one active room-night claim for R/N exists; exactly one confirmation succeeds.",
+        "The losing booking retains an explainable unconfirmed/conflict state with zero committed replacement claim.",
+        "Capacity is never duplicated merely because two saleable products/packages name the same physical room."
+      ],
+      "failure_result": [
+        "Two confirmations, negative available capacity or an orphaned synchronous deposit allocation fails the gate."
+      ]
+    },
+    {
+      "id": "AT-062",
+      "title": "Resolve expiry and confirmation of a hold atomically",
+      "owner_component": "com_farmstay",
+      "collaborating_components": [],
+      "milestone": "M09",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "two_database_connections",
+      "preconditions": [
+        "Hold H expires at 2027-06-01T10:00:00Z and owns one room-night claim.",
+        "A confirmation and expiry worker compete at that exact boundary."
+      ],
+      "action": "Run both operations with the server clock fixed to the expiry instant and repeat with confirmation committed just before expiry.",
+      "expected_persistent_result": [
+        "At the expiry instant H is no longer eligible to confirm without reacquiring capacity; expiry releases its hold once.",
+        "If confirmation committed before expiry, the later expiry worker does not release the confirmed claim.",
+        "No outcome has confirmed booking status without its active claim, or a released claim still counted as held."
+      ],
+      "failure_result": [
+        "Client clock authority, unconditional expiry release or a confirmed expired hold fails the gate."
+      ]
+    },
+    {
+      "id": "AT-063",
+      "title": "Move a confirmed stay without losing the existing reservation",
+      "owner_component": "com_farmstay",
+      "collaborating_components": [],
+      "milestone": "M09",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Booking B owns room R on nights 10 and 11 June.",
+        "Requested replacement room S has the first replacement night free and the second blocked."
+      ],
+      "action": "Attempt to move the whole stay to S, then remove the block and retry with a new authorized command.",
+      "expected_persistent_result": [
+        "Failed move leaves both original R claims and accepted price/policy snapshots unchanged, with zero partial S claims.",
+        "Successful move atomically creates both S claims, releases both R claims and increments B version once.",
+        "Repeated successful request key returns the same move result."
+      ],
+      "failure_result": [
+        "Releasing old claims before securing the complete replacement or partially moving the stay fails the gate."
+      ]
+    },
+    {
+      "id": "AT-064",
+      "title": "Keep deposits, cancellation fees and refunds separately attributable",
+      "owner_component": "com_farmstay",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M09",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Booking B has a received NAD 1,000.00 deposit in operational/export mode; the same commercial fixture is repeated in native mode when enabled.",
+        "Accepted synthetic cancellation policy requires a NAD 200.00 fee; no accommodation service has been earned."
+      ],
+      "action": "Cancel B, approve the fee and refund the remaining NAD 800.00; retry cancellation and refund.",
+      "expected_persistent_result": [
+        "Booking resource claims are released once.",
+        "The NAD 1,000.00 deposit source balance is fully disposed through the documented NAD 200.00 fee/application and NAD 800.00 refund path. In native mode the same actions clear the deposit liability; operational mode makes no posted-GL claim.",
+        "Net bank change from original receipt and refund is plus NAD 200.00; cancellation does not delete the original receipt or recognize accommodation revenue.",
+        "Retries create no duplicate fee, claim release or refund."
+      ],
+      "failure_result": [
+        "Marking a refund complete without payment evidence or deleting an externally settled deposit fails the gate."
+      ]
+    },
+    {
+      "id": "AT-065",
+      "title": "Coordinate guides and vehicles with explicit time buffers",
+      "owner_component": "com_farmstay",
+      "collaborating_components": [
+        "com_farmwork"
+      ],
+      "milestone": "M09",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "two_database_connections",
+      "preconditions": [
+        "Guide G and vehicle V are claimed from 06:00 to 12:00 local time.",
+        "Resource policy requires a 30-minute turnaround after this booking.",
+        "Work can expose V maintenance availability through an optional capability, but Stay owns reservation claims."
+      ],
+      "action": "Request 09:00-13:00, then 12:00-14:00, then 12:30-14:00 for both resources.",
+      "expected_persistent_result": [
+        "The overlapping and buffer-violating requests create zero claims.",
+        "The 12:30 request may acquire both resources atomically if no other block exists.",
+        "Disabling the optional Work capability does not duplicate physical resources or erase existing claims; required unavailable eligibility is surfaced."
+      ],
+      "failure_result": [
+        "Claiming only one resource on failure, ignoring a blocking maintenance interval or creating separate capacity per package fails the gate."
+      ]
+    },
+    {
+      "id": "AT-066",
+      "title": "Prevent hunting quota over-allocation and expired approval use",
+      "owner_component": "com_farmstay",
+      "collaborating_components": [],
+      "milestone": "M09",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "two_database_connections",
+      "preconditions": [
+        "Approved species/farm/season quota ceiling is 2 with one unit already reserved and none consumed.",
+        "Two hunt requests each seek one remaining unit; approval validity ends at the stated season boundary."
+      ],
+      "action": "Allocate both concurrently, then attempt confirmation with approval expired.",
+      "expected_persistent_result": [
+        "Only one new unit is reserved; total reserved plus consumed is at most 2.",
+        "The losing request has no quota allocation and cannot infer availability from a wildlife observation.",
+        "Expired approval blocks confirmation even if numerical quota remains; review evidence is tied to the applicable subject and dates."
+      ],
+      "failure_result": [
+        "Quota double-spend, use of expired approval or treating an uploaded file as automatic approval fails the gate."
+      ]
+    },
+    {
+      "id": "AT-067",
+      "title": "Separate hunt booking, actual outcome and trophy custody",
+      "owner_component": "com_farmstay",
+      "collaborating_components": [
+        "com_farmledger",
+        "com_farmcore"
+      ],
+      "milestone": "M09",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "A lodging stay and guide-service invoice are paid; hunt outcome has not occurred.",
+        "Required hunt-specific permissions/evidence are not yet approved."
+      ],
+      "action": "Attempt to record a completed hunt from invoice status alone, then perform the authorized workflow after valid approval and record an actual outcome/custody handoff.",
+      "expected_persistent_result": [
+        "Payment creates no automatic wildlife decrement, harvest outcome or trophy record.",
+        "The authorized actual outcome consumes the relevant quota allocation once and retains person/species/date/location evidence.",
+        "Trophy custody handoff records source, recipient, date and external permit references without claiming ERP-issued government authorization."
+      ],
+      "failure_result": [
+        "Cancelling the booking cannot erase a previously confirmed real outcome or restore consumed quota without an authorized correction."
+      ]
+    },
+    {
+      "id": "AT-068",
+      "title": "Keep personnel and banking data out of ordinary task access",
+      "owner_component": "com_farmwork",
+      "collaborating_components": [
+        "com_farmcore"
+      ],
+      "milestone": "M10",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "http_roles_and_database",
+      "preconditions": [
+        "Supervisor U may assign tasks and view workers but has no salary, private personnel or bank-detail permission.",
+        "Worker W has restricted HR attachments, bank information and approved pay data."
+      ],
+      "action": "As U open task lists, worker selectors, search, CSV export, direct worker/detail routes and attachment URLs.",
+      "expected_persistent_result": [
+        "Operational worker identity and task availability are visible only as permitted.",
+        "Salary, bank account, private identifiers and HR document bytes are absent or denied across all paths.",
+        "No private field can be changed by submitting it in an ordinary task update payload."
+      ],
+      "failure_result": [
+        "Field-level leak through an API/export or mass-assignment write fails the gate."
+      ]
+    },
+    {
+      "id": "AT-069",
+      "title": "Separate reviewed labour cost from payroll entitlement",
+      "owner_component": "com_farmwork",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M10",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Worker W records 6.000000 cattle hours and 2.000000 workshop hours at approved costing rate NAD 50.000000/hour.",
+        "These time spans do not overlap; the next-day rate changes to NAD 60.000000."
+      ],
+      "action": "Approve both entries, change the future rate and attempt an incompatible overlapping attendance/time record.",
+      "expected_persistent_result": [
+        "Approved internal costs remain cattle NAD 300.00 and workshop NAD 100.00, total NAD 400.00.",
+        "Historical rate snapshots stay NAD 50.000000; future rate affects only applicable future entries.",
+        "An incompatible overlap is rejected or requires an explicit authorized correction; no automatic payroll payable is created from management cost alone."
+      ],
+      "failure_result": [
+        "Repricing approved history or counting one attendance span twice as payable work fails the gate."
+      ]
+    },
+    {
+      "id": "AT-070",
+      "title": "Export one reviewed payroll period and deduplicate approved import",
+      "owner_component": "com_farmwork",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M10",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Period P has approved attendance, leave and adjustment inputs with no unresolved approvals.",
+        "Native statutory payroll calculation is disabled; an external approved payroll response specifies payable NAD 1,875.00 and employer liability NAD 10.01."
+      ],
+      "action": "Export P twice at the same revision, import the approved external result twice, then attempt to alter an exported input without creating a revision.",
+      "expected_persistent_result": [
+        "Exports carry one stable period/revision identity, source-row identities, schema and hash; repeat does not create extra payables.",
+        "One payable NAD 1,875.00 and one separate employer obligation NAD 10.01 are imported under unique external references.",
+        "Unversioned mutation is rejected; a correction produces a documented new revision/adjustment handoff.",
+        "No export or import is labelled an internally validated country payroll calculation."
+      ],
+      "failure_result": [
+        "Employer contribution reducing employee take-home, duplicate import or silent post-export edit fails the gate."
+      ]
+    },
+    {
+      "id": "AT-071",
+      "title": "Consume maintenance parts and fuel through Ledger exactly once",
+      "owner_component": "com_farmwork",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M10",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Maintenance job J uses one part costing NAD 600.00, two labour hours at NAD 100.00 and contractor service NAD 400.00.",
+        "A separate fuel issue uses 20.000000 litres from sufficient stock."
+      ],
+      "action": "Finalize the authorized job costs and fuel issue, close J twice and inject a part-post failure in a separate run.",
+      "expected_persistent_result": [
+        "J operational cost is NAD 1,200.00 with one reference to each approved cost source.",
+        "Part stock falls by one and fuel stock by 20.000000 litres exactly once; task closure creates no additional issues.",
+        "The failed required part-post run leaves job finalization and its synchronous effects uncommitted.",
+        "One next recurring maintenance occurrence is created for the completed occurrence key."
+      ],
+      "failure_result": [
+        "Work owning a second fuel balance, duplicate recurrence or silent capitalization by the technician fails the gate."
+      ]
+    },
+    {
+      "id": "AT-072",
+      "title": "Record meter replacement and missing rainfall without false consumption",
+      "owner_component": "com_farmwork",
+      "collaborating_components": [],
+      "milestone": "M10",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Water meter M last valid reading is 1,000.000000 cubic metres; next is 1,020.000000.",
+        "Meter replacement then starts a new meter at 0.000000; next reading on the new meter is 5.000000.",
+        "One day has missing rainfall and another has measured 0.000000 mm."
+      ],
+      "action": "Post observations, explicit replacement and the daily water/rain report.",
+      "expected_persistent_result": [
+        "Old-meter usage is 20.000000 cubic metres; new-meter usage is 5.000000; combined observed usage is 25.000000.",
+        "No negative 1,020.000000 use is created by replacement.",
+        "Missing rain remains missing; measured zero remains zero; no report asserts water entitlement from these observations."
+      ],
+      "failure_result": [
+        "A decreasing reading without reset/replacement evidence is rejected or held for review, not silently converted to consumption."
+      ]
+    },
+    {
+      "id": "AT-073",
+      "title": "Activate only reviewed country capabilities and dated policy versions",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M11",
+      "release_gate": {
+        "release": "R4",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "document_review_and_http",
+      "preconditions": [
+        "Namibia, South Africa and Botswana packs have separate capability/status/version records.",
+        "One capability is approved for its test profile; another remains draft with an unresolved local-law question."
+      ],
+      "action": "Activate the approved capability, attempt to activate the draft one, and switch transaction currency from NAD to ZAR on a draft.",
+      "expected_persistent_result": [
+        "Only the approved tested capability activates with its country/version/effective date and reviewer evidence.",
+        "Draft capability remains disabled and creates no regulated posting/filing claim.",
+        "Changing transaction currency does not change legal-entity country, tax pack or functional currency."
+      ],
+      "failure_result": [
+        "Treating currency selection as jurisdiction selection or importing sample rates as law fails the gate."
+      ]
+    },
+    {
+      "id": "AT-074",
+      "title": "Deduplicate provider callbacks and distinguish bank settlement",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [
+        "com_farmcore"
+      ],
+      "milestone": "M11",
+      "release_gate": {
+        "release": "R4",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "provider_sandbox_and_database",
+      "preconditions": [
+        "A supported adapter contract defines signature verification, provider reference and event identity.",
+        "Payment intent P has no accepted settlement; callbacks include valid pending, valid settled, repeated settled and invalid-signature events."
+      ],
+      "action": "Deliver callbacks in that order, including a repeated valid settled event with a new transport request.",
+      "expected_persistent_result": [
+        "Pending acknowledges intent only and creates no bank-settled claim.",
+        "One verified settled event records one payment/settlement effect under the provider identity.",
+        "Repeated event creates zero new payment effects; invalid signature changes no payment state.",
+        "External statement reconciliation remains separately attributable where required by the adapter."
+      ],
+      "failure_result": [
+        "Accepting unsigned state changes, counting a pending acknowledgment as settled or duplicating a provider reference fails the gate."
+      ]
+    },
+    {
+      "id": "AT-075",
+      "title": "Recover outbox delivery after uncertain external acceptance",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M11",
+      "release_gate": {
+        "release": "R4",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "provider_sandbox_and_database",
+      "preconditions": [
+        "A committed invoice owns one outbox intent with a stable event/delivery identity.",
+        "A controlled mail adapter accepts the message but loses the acknowledgment before local completion."
+      ],
+      "action": "Restart the worker and inspect/retry according to the adapter reconciliation policy.",
+      "expected_persistent_result": [
+        "The invoice, stock, journal and payment records remain unchanged.",
+        "One durable intent retains attempts, uncertain outcome and available provider evidence; no new invoice is created.",
+        "The UI does not promise exactly-once email or recipient reading; any retry is recorded as another attempt under the same business intent."
+      ],
+      "failure_result": [
+        "Sending before business commit, losing the intent or labelling uncertain acceptance as proven delivery fails the gate."
+      ]
+    },
+    {
+      "id": "AT-076",
+      "title": "Synchronize offline drafts without duplicate business posting",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [
+        "com_farmlivestock"
+      ],
+      "milestone": "M12",
+      "release_gate": {
+        "release": "R4",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "offline_browser_and_server",
+      "preconditions": [
+        "Offline scope is limited to approved low-risk observations; device D captures a weight draft for animal A using persistent key K while disconnected.",
+        "No server weight_observation or other business effect exists for K; actor is currently authorised for A."
+      ],
+      "action": "Record a synthetic 421.500000 kg weight offline, reconnect and submit twice with D/K; lose the first successful response and retry the same key.",
+      "expected_persistent_result": [
+        "The disconnected capture is visibly saved only on this device and creates no server record.",
+        "After current authorisation and version validation, exactly one weight_observation of 421.500000 kg exists for A; all replays return its original identity.",
+        "No stock movement, journal, invoice number or resource claim is created by the observation; local state becomes accepted only from the durable server result."
+      ],
+      "failure_result": [
+        "Duplicate observations, a local draft labelled committed before server acceptance, or any offline financial/stock/reservation finalisation fails the gate."
+      ]
+    },
+    {
+      "id": "AT-077",
+      "title": "Revalidate stale offline data and revoked identity",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [
+        "com_farmlivestock"
+      ],
+      "milestone": "M12",
+      "release_gate": {
+        "release": "R4",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "offline_browser_and_server",
+      "preconditions": [
+        "Device D has a permitted weight-observation draft against animal A version 7.",
+        "While disconnected A moves to a farm outside user U scope and becomes version 8; U access is revoked."
+      ],
+      "action": "Reconnect and attempt sync as U; later grant the appropriate current access and retry only after explicit stale-record review.",
+      "expected_persistent_result": [
+        "Revoked U cannot read protected updates, retrieve a prior command result or create an observation.",
+        "After valid current authorisation the server detects version 7 vs 8 and presents review; no silent overwrite or scope escape occurs.",
+        "Only a reviewed new command for the current identity/version may create one observation; rejected drafts retain visible error status.",
+        "Local cache cleanup follows the approved retention/logout/revocation policy without claiming inaccessible lost-device data can be remotely erased."
+      ],
+      "failure_result": [
+        "Cached permissions overriding server scope, silent version replacement or restricted documents/admin tokens in local drafts fails the gate."
+      ]
+    },
+    {
+      "id": "AT-078",
+      "title": "Upgrade supported module combinations without losing owned data",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [
+        "com_farmledger",
+        "com_farmlivestock",
+        "com_farmcrops",
+        "com_farmmake",
+        "com_farmstay",
+        "com_farmwork"
+      ],
+      "milestone": "M13",
+      "release_gate": {
+        "release": "R4",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "upgrade_matrix",
+      "preconditions": [
+        "Fixtures exist for Core+Ledger only and for all seven components; one domain is disabled but has historical records.",
+        "Each fixture has posted stock, trade, private-file links and stable application GUIDs."
+      ],
+      "action": "Upgrade from the last supported release using generated installers and controlled migrations, then re-enable the disabled domain and exercise a protected workflow.",
+      "expected_persistent_result": [
+        "All pre-upgrade source identities, history, private-file links, quantities and monetary control totals remain unchanged.",
+        "Each migration records completion once; rerun applies no duplicate seed data, number allocation or business effect.",
+        "Disabled historical records stay readable under permission; re-enabled workflows resolve compatible services without duplicate classes."
+      ],
+      "failure_result": [
+        "Partial DDL migration is reported as deployment failure with the documented recovery path; it is not claimed rolled back by a business transaction."
+      ]
+    },
+    {
+      "id": "AT-079",
+      "title": "Block destructive uninstall while dependencies or history exist",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M13",
+      "release_gate": {
+        "release": "R4",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "upgrade_matrix",
+      "preconditions": [
+        "Ledger contains posted documents; a satellite has retained historical source links; Core owns shared services and private files."
+      ],
+      "action": "Attempt to uninstall Core first and to remove a populated domain through ordinary extension management.",
+      "expected_persistent_result": [
+        "Dependency-breaking uninstall is blocked or enters the explicitly documented non-destructive retention path.",
+        "No posted stock, journal, genealogy, booking or private evidence is cascade-deleted.",
+        "Existing history remains resolvable and the operator receives the precise dependency/data reason."
+      ],
+      "failure_result": [
+        "Treating extension uninstall as permission to erase live business data fails the release gate."
+      ]
+    },
+    {
+      "id": "AT-080",
+      "title": "Restore a consistent business recovery point",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [
+        "com_farmledger",
+        "com_farmstay"
+      ],
+      "milestone": "M13",
+      "release_gate": {
+        "release": "R4",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "backup_restore_environment",
+      "preconditions": [
+        "A supported backup captures database, private objects, configuration, JCB source/build references and one documented recovery cutoff.",
+        "Fixture includes posted transactions, one pending outbox intent and a private attachment checksum."
+      ],
+      "action": "Restore into an isolated new environment, reconcile controls and resume only the documented pending job.",
+      "expected_persistent_result": [
+        "Recovered stock quantities/value, open invoice residuals, booking claims and posted journal control totals equal the captured cutoff.",
+        "Private attachment checksum and authorization match the captured evidence; no public exposure is introduced.",
+        "Resuming the pending job creates no duplicate financial effect and retains its delivery identity.",
+        "The run records actual recovery point and measured restoration duration against approved objectives."
+      ],
+      "failure_result": [
+        "A downloaded ZIP without restored readback, inconsistent database/object cutoff or unverified business controls cannot pass."
+      ]
+    },
+    {
+      "id": "AT-081",
+      "title": "Demonstrate the declared pilot load without correctness loss",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [
+        "com_farmledger",
+        "com_farmlivestock",
+        "com_farmstay"
+      ],
+      "milestone": "M13",
+      "release_gate": {
+        "release": "R4",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_load",
+      "preconditions": [
+        "Representative fixture has 1-5 farms, 10,000 individual animals, 100,000 operational events, 25,000 yearly stock lines and 20 accommodation resources.",
+        "An approved environment-specific latency/error budget is recorded before the run."
+      ],
+      "action": "Exercise 20 concurrent authorized active users with farm-scoped daily views and contested stock/booking writes, then reconcile committed results.",
+      "expected_persistent_result": [
+        "Every successful request has one durable outcome; denied conflicts create zero partial effects.",
+        "Farm isolation holds and stock, room claims, invoice residuals and journal totals reconcile after the load.",
+        "The report records achieved latency percentiles and error counts against the pre-approved numerical budget; no capacity claim is inferred without those measurements."
+      ],
+      "failure_result": [
+        "Unreconciled data, unbounded contention or an absent approved performance budget prevents this gate passing."
+      ]
+    },
+    {
+      "id": "AT-082",
+      "title": "Stage, validate and resume a migration import by stable row identity",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M14",
+      "release_gate": {
+        "release": "R4",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "migration_rehearsal",
+      "preconditions": [
+        "Import contains 100 source rows: 98 valid, one duplicate external identity and one unresolved required product reference.",
+        "No imported live records exist; mapping/schema version and source file hash are fixed."
+      ],
+      "action": "Run dry-run, resolve/reject the two problematic rows explicitly, import approved rows in bounded batches, interrupt after one batch and resume.",
+      "expected_persistent_result": [
+        "Dry-run creates zero live business rows and exactly two actionable exception records.",
+        "After approved resolution, each accepted source row exists once with source identity and mapping version; rejected rows remain auditable.",
+        "Resume does not duplicate completed rows or effects; control totals match the accepted source population exactly."
+      ],
+      "failure_result": [
+        "Silent row skipping, guessing required masters or rerun duplication fails cutover readiness."
+      ]
+    },
+    {
+      "id": "AT-083",
+      "title": "Activate native accounting with reconciled opening balances once",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M14",
+      "release_gate": {
+        "release": "R4",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "migration_rehearsal",
+      "preconditions": [
+        "Operational mode cutoff is approved; old export period is frozen.",
+        "Opening fixture: bank NAD 1,000.00, inventory NAD 500.00, AR NAD 200.00, AP NAD 300.00, customer deposits NAD 100.00 and opening equity NAD 1,300.00.",
+        "AR/AP detail, stock quantities/value and bank/deposit evidence match these amounts."
+      ],
+      "action": "Import opening detail and journals under unique cutover keys, activate native mode, repeat import and attempt a simple settings-toggle return to operational mode.",
+      "expected_persistent_result": [
+        "Opening debits bank 1,000.00 + inventory 500.00 + AR 200.00 equal credits AP 300.00 + deposits 100.00 + equity 1,300.00, total NAD 1,700.00 each.",
+        "One opening source set persists; repeated import adds zero balances or effects.",
+        "Activation records approver/evidence/cutoff; native postings thereafter prevent a casual mode toggle back.",
+        "Historical invoices are not both replayed and represented again in imported opening residuals."
+      ],
+      "failure_result": [
+        "Any control mismatch prevents activation; a balanced aggregate alone does not override unmatched AR/AP or stock detail."
+      ]
+    },
+    {
+      "id": "AT-084",
+      "title": "Release only the capabilities whose evidence is complete",
+      "owner_component": "com_farmcore",
+      "collaborating_components": [
+        "com_farmledger",
+        "com_farmlivestock",
+        "com_farmcrops",
+        "com_farmmake",
+        "com_farmstay",
+        "com_farmwork"
+      ],
+      "milestone": "M15",
+      "release_gate": {
+        "release": "R4",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "release_review",
+      "preconditions": [
+        "All intended release capabilities identify their country/profile, component versions and required acceptance case IDs.",
+        "Test evidence has been produced by the implementing team; this backlog itself still carries no execution claim."
+      ],
+      "action": "Review the release matrix, immutable build/source manifest, migration/restore receipts and owner/accountant/regional approvals before deployment.",
+      "expected_persistent_result": [
+        "One release record lists exact included capabilities and their passing evidence revisions.",
+        "Any not_run, failed or unresolved blocking case keeps its dependent capability unshippable or disabled with a documented scope decision.",
+        "The published operator/runbook material includes backup restore, incident handling, updates, support ownership and data export.",
+        "No regulatory or performance claim exceeds the recorded country/environment evidence."
+      ],
+      "failure_result": [
+        "A blanket all-ERP-complete label while accounting, regional or recovery gates remain open fails release acceptance."
+      ]
+    },
+    {
+      "id": "AT-085",
+      "title": "Canonicalize stock identity when optional dimensions are absent",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M03",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "two_database_connections",
+      "preconditions": [
+        "The declared balance key includes product, lot, warehouse/bin and ownership dimensions; lot/bin may be absent for an untracked item.",
+        "Two requests refer to the same logical absent lot/bin using the supported null/empty representations."
+      ],
+      "action": "Normalize both requests and create/lock the stock balance concurrently under the canonical non-null balance_key contract.",
+      "expected_persistent_result": [
+        "Exactly one balance row exists for the logical untracked product/location/ownership identity.",
+        "Its canonical balance_key is non-null and identical for equivalent absent-dimension inputs; genuinely different ownership or location yields a different key.",
+        "The database uniqueness guard prevents duplicate rows without relying on NULL values comparing equal in a composite unique index."
+      ],
+      "failure_result": [
+        "Duplicate null-dimension rows, normalization collisions across distinct owners or relying on unsupported partial-index behavior fails the gate."
+      ]
+    },
+    {
+      "id": "AT-086",
+      "title": "Rebuild projections without losing a concurrent committed movement",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [
+        "com_farmcore"
+      ],
+      "milestone": "M13",
+      "release_gate": {
+        "release": "R4",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "two_database_connections",
+      "preconditions": [
+        "Movement history sums to 10.000000 units/NAD 100.00 before the rebuild cutoff.",
+        "A concurrent authorized receipt adds 2.000000 units/NAD 20.00.",
+        "The chosen rebuild implementation explicitly uses either a writer quiesce or a versioned snapshot plus complete delta catch-up."
+      ],
+      "action": "Rebuild stock balance and valuation projections while scheduling the receipt at the boundary of snapshot and replacement.",
+      "expected_persistent_result": [
+        "After rebuild/catch-up the authoritative history and published balance both equal 12.000000 units/NAD 120.00.",
+        "No committed receipt is overwritten by an older reconstructed snapshot; no receipt is counted twice.",
+        "The rebuild records its cutoff/version, completion watermark and strategy; no stale projection is advertised as current."
+      ],
+      "failure_result": [
+        "Blindly replacing balances from a stale read or allowing a mixed old/new projection without freshness state fails the gate."
+      ]
+    },
+    {
+      "id": "AT-087",
+      "title": "Serialize pooled slot capacity through the existing physical resource",
+      "owner_component": "com_farmstay",
+      "collaborating_components": [],
+      "milestone": "M09",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "two_database_connections",
+      "preconditions": [
+        "One existing physical resource has approved capacity 3 for the requested slot and no active claims.",
+        "Two commands each request quantity 2 for the same slot through different package lines."
+      ],
+      "action": "Run both requests concurrently, locking that same existing resource row before reading or inserting overlapping claims.",
+      "expected_persistent_result": [
+        "Exactly one request for quantity 2 commits; total active claimed quantity is 2 and remaining capacity is 1.",
+        "Both callers use the same physical resource lock; no unmodelled per-package or per-slot capacity owner is created.",
+        "The tested row-lock strategy does not assume exclusion constraints, partial indexes or the existence of a separate slot table."
+      ],
+      "failure_result": [
+        "Both requests observing zero claims and reserving four units, or separate package-specific capacity totals, fails the gate."
+      ]
+    },
+    {
+      "id": "AT-088",
+      "title": "Block initial native-accounting activation until every control matches",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [
+        "com_farmcore"
+      ],
+      "milestone": "M05",
+      "release_gate": {
+        "release": "R2",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Operational mode has an approved proposed cutover and draft opening journal that balances globally.",
+        "AR detail is NAD 200.00 but the proposed AR control is NAD 190.00; another opening account contains an offsetting NAD 10.00 so aggregate debits and credits still balance."
+      ],
+      "action": "Attempt native activation, correct the mismatched source detail/control through an approved revision, and retry.",
+      "expected_persistent_result": [
+        "The first activation is refused and operational mode remains active despite the globally balanced draft.",
+        "No final opening posting or native report availability is created until AR/AP, stock, bank/deposits/assets and approved mappings all reconcile.",
+        "After approved correction one activation record and one opening source set persist with cutoff, reviewer and evidence; the old export period is frozen.",
+        "This initial R2 control gate is repeated in the full migration rehearsal at M14."
+      ],
+      "failure_result": [
+        "Treating aggregate balance as sufficient, automatic balancing plugs or native activation before accountant approval fails R2."
+      ]
+    },
+    {
+      "id": "AT-089",
+      "title": "Intersect independent stock holds without double-subtracting quantity",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [
+        "com_farmmake"
+      ],
+      "milestone": "M03",
+      "release_gate": {
+        "release": "R1",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "http_roles_and_database",
+      "preconditions": [
+        "Physical on-hand is 10.000000: lot L1 has 4.000000 and lot L2 has 6.000000.",
+        "Quality hold Q and recall hold R independently cover all four L1 units; an active reservation covers 2.000000 eligible L2 units."
+      ],
+      "action": "Read availability, release Q with its authorized command, attempt issue from L1, then independently release R and read availability again.",
+      "expected_persistent_result": [
+        "Initial physical on-hand is 10.000000, union of held quantity is 4.000000, active reserved eligible quantity is 2.000000 and available quantity is 4.000000.",
+        "Releasing Q leaves R active: held quantity stays 4.000000, available stays 4.000000 and an ordinary L1 issue remains denied.",
+        "Only after authorized release of R does held quantity become zero and available become 8.000000; on-hand remains 10.000000 throughout.",
+        "Each hold retains its own reason, owner, source, scope and release audit; releasing one never rewrites another hold or creates a stock movement."
+      ],
+      "failure_result": [
+        "Subtracting eight held units for two overlapping holds, clearing all holds through one quality action, or trusting a single summary status fails the gate."
+      ]
+    },
+    {
+      "id": "AT-090",
+      "title": "Enforce independent output-specific animal restrictions",
+      "owner_component": "com_farmlivestock",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M06",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "http_roles_and_database",
+      "preconditions": [
+        "Animal A has treatment T1 meat restriction ending 2027-01-17T08:00:00Z and milk restriction ending 2027-01-12T08:00:00Z.",
+        "Treatment T2 independently restricts meat until 2027-01-20T08:00:00Z and milk until 2027-01-14T08:00:00Z; dates/rules are synthetic approved fixtures.",
+        "All unrelated eligibility is satisfied."
+      ],
+      "action": "At 2027-01-15T08:00:00Z test milk and meat eligibility; authorize a correction releasing only T1, attempt to override the animal summary date directly, then test meat at the T2 boundary.",
+      "expected_persistent_result": [
+        "At the first instant milk is eligible under these restrictions, while meat is blocked by active T1 and T2 restrictions.",
+        "Releasing/correcting T1 leaves T2 meat restriction active until its exact end; a summary-date edit grants no authority and cannot permit the blocked dispatch.",
+        "At 2027-01-20T08:00:00Z meat becomes eligible only because every applicable independent meat restriction has ended; milk history remains separately inspectable.",
+        "Restriction rows preserve output/purpose, source treatment, rule revision, interval and authorized correction; the displayed withdrawal summary is a projection."
+      ],
+      "failure_result": [
+        "Using a single withdrawal_end field as authority, clearing unrelated treatment restrictions or applying meat duration indiscriminately to milk fails the gate."
+      ]
+    },
+    {
+      "id": "AT-091",
+      "title": "Recognize a customer deposit and apply it without duplicate revenue",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [],
+      "milestone": "M05",
+      "release_gate": {
+        "release": "R2",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "production_like_database",
+      "preconditions": [
+        "Native accounting is active; approved synthetic recognition policy treats the advance as a liability.",
+        "Customer pays NAD 2,000.00 against an agreed service that will later be invoiced at NAD 4,000.00; taxes disabled."
+      ],
+      "action": "Receive the deposit, issue the earned-service invoice at the approved recognition point, allocate the deposit and retry the allocation.",
+      "expected_persistent_result": [
+        "Deposit receipt debits bank NAD 2,000.00 and credits customer deposits NAD 2,000.00 with no earned revenue.",
+        "Invoice debits receivables NAD 4,000.00 and credits service revenue NAD 4,000.00.",
+        "Application debits customer deposits NAD 2,000.00 and credits receivables NAD 2,000.00; deposit remainder is zero and invoice remainder NAD 2,000.00.",
+        "Retry creates zero additional allocation or revenue; total recognized service revenue stays NAD 4,000.00."
+      ],
+      "failure_result": [
+        "Recognizing revenue both on advance and again on invoicing, or applying the deposit twice, fails native accounting."
+      ]
+    },
+    {
+      "id": "AT-092",
+      "title": "Preserve restricted flock ancestry through split and individualisation",
+      "owner_component": "com_farmlivestock",
+      "collaborating_components": [
+        "com_farmledger"
+      ],
+      "milestone": "M06",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "http_roles_and_database",
+      "preconditions": [
+        "Unindividualised group G contains 100 sheep covered by active synthetic meat restriction R until 2027-01-20T08:00:00Z.",
+        "No evidence identifies an unaffected subset; all input counts and source versions are valid."
+      ],
+      "action": "Split 30 sheep into G2, then individually identify 5 from G2; attempt a meat disposition of those 5 before R ends and repeat the split request key.",
+      "expected_persistent_result": [
+        "Counts reconcile as G 70, G2 unindividualised 25 and 5 identified animals, total 100.",
+        "G2 and the 5 identities retain independently enforceable restrictions linked to original R; the meat disposition remains blocked.",
+        "Replaying the split creates no duplicate groups, animals, count changes or restriction ancestry.",
+        "If affected identities cannot be distinguished, all potentially affected descendants remain conservatively restricted until authorised evidence resolves them."
+      ],
+      "failure_result": [
+        "A new group/tag/GUID clearing R, duplicated count or an atomic split without propagated restriction evidence fails the gate."
+      ]
+    },
+    {
+      "id": "AT-093",
+      "title": "Reject direct Ledger bypass of animal eligibility",
+      "owner_component": "com_farmledger",
+      "collaborating_components": [
+        "com_farmlivestock",
+        "com_farmmake"
+      ],
+      "milestone": "M06",
+      "release_gate": {
+        "release": "R3",
+        "blocking": true
+      },
+      "status": "not_run",
+      "execution_environment": "http_roles_and_database",
+      "preconditions": [
+        "An individually tracked animal has one dedicated Ledger lot, stock quantity 1 and an active synthetic restriction on the requested disposition.",
+        "The actor may perform ordinary Ledger stock actions but may not release the applicable restriction."
+      ],
+      "action": "Try the blocked disposition through Ledger issue, sales delivery, adjustment and production use; attempt an arbitrary disposition override and repeat with the required Livestock provider unavailable.",
+      "expected_persistent_result": [
+        "Every relevant path derives the actual disposition from its validated source and calls required owner eligibility before stock/valuation effects.",
+        "All blocked attempts leave quantity 1 and original value, restriction and source statuses unchanged, with no posted effects.",
+        "A missing required owner policy fails closed for the affected action; harmless authorised historical reads remain available.",
+        "A permitted relocation unrelated to the restricted purpose is evaluated under its own approved rule, not automatically treated as an illegal sale."
+      ],
+      "failure_result": [
+        "Generic stock routes, arbitrary purpose text, missing provider or disabling a module bypassing an applicable restriction fails the gate."
+      ]
+    }
+  ]
+}
