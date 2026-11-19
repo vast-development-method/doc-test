@@ -157,7 +157,7 @@ The documented Admin View `php_model`/`php_controller` slots and their enable sw
 
 ### Proof procedure and pass criteria
 
-1. Compile a Core owner service and a minimal satellite caller as two real JCB roots. Install Core, then the satellite, on Joomla without JCB installed. Verify the caller in administrator, frontend and API contexts actually required by the project.
+1. Compile a Core owner service and a minimal Ledger caller as two real JCB roots. Install Core, then Ledger, on Joomla without JCB installed. Verify the caller in administrator, frontend and API contexts actually required by the project. Add a minimal Livestock caller before claiming the three-owner domain → Ledger → Core posting path is proved; the initial two-root bridge alone does not establish that full transaction.
 2. Inspect both archives: the owner service has one installation/update/uninstall owner. No satellite installs a conflicting copy into the same global Power library path. Core can load without the satellite; a missing/incompatible Core dependency produces a clear preflight/runtime failure.
 3. Demonstrate the selected bridge reaches a real owner factory. Do not claim arbitrary container access merely from `bootComponent()`. Verify actual generated class imports, loaded namespaces, request context and provider registration.
 4. Supply one actual database driver instance to all participants. Record a test assertion of driver identity/connection use. A shared database name is insufficient: two connections do not share one transaction.
@@ -166,7 +166,7 @@ The documented Admin View `php_model`/`php_controller` slots and their enable sw
 7. Force an exception after the domain write and again after the Ledger write. Verify that all transactional business/audit/outbox effects roll back together, identities remain coherent and no notification was sent.
 8. Run the same command twice with the same idempotency key, then with a conflicting payload; verify the specified replay and conflict outcomes. Run independent native requests contending for the same stock, animal or booking resource; verify overselling/overbooking and lost-update prevention.
 9. Upgrade one owner within the supported version range, reject an incompatible owner version, disable/remove the optional satellite, and verify Core and unrelated modules still operate. Block removal of a required owner while dependants or protected data remain.
-10. Export the complete source, reacquire it in clean JCB, rebuild both components and repeat the representative tests. Keep the exact supported bridge, provider bootstrapping and required assets in the source. If a compiler extension is demonstrably necessary, author it in JCB, scope it narrowly and test its drift/repeatability; never patch generated output as the lasting implementation.
+10. Export the complete source, reacquire it in clean JCB, rebuild the participating components and repeat the representative tests. Keep the exact supported bridge, provider bootstrapping and required assets in the source. If a compiler extension is demonstrably necessary, author it in JCB, scope it narrowly and test its drift/repeatability; never patch generated output as the lasting implementation.
 
 Until this gate passes, the roadmap's cross-component atomic commands are proposed architecture. Do not spread untested wiring across all modules and try to repair it at the end.
 
