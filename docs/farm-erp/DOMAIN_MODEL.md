@@ -44,6 +44,7 @@ Natural identifiers are explicit: animal tags are strings (preserve leading zero
 | `uom` | code, label, dimension, decimal scale | Dimensions such as count, mass, volume, length, area, time; no implicit cross-dimension conversion |
 | `product` | SKU, name, kind, base unit, stock/lot/expiry flags, sale/purchase eligibility | Stock, service and non-stock distinguishable; activate only with complete stock/tax/account policy for enabled mode |
 | `product_conversion` | product, from/to units, numerator/denominator or exact factor, effective dates | Unique active conversion; package sizes may differ by product; transaction snapshots survive edits |
+| `vocabulary` / `vocabulary_item` | managed vocabulary kind; code/label, parent item, validity and external reference | Typed sets for species/breed, crop/variety, grades and task/incident types; child parent must be in the compatible set; archive referenced items rather than deleting them |
 | `currency` | code, precision, enabled | Only initial three supported codes; display symbols are never the identity |
 | `exchange_rate` | from/to codes, rate, rate date, source, approved_by | Positive; explicit direction; no rate inferred from symbol or country |
 | `country_pack` | country, version, effective dates, evidence, approval/status, capabilities | Draft/approved/superseded; no activation of unapproved regulated capabilities |
@@ -64,16 +65,17 @@ Natural identifiers are explicit: animal tags are strings (preserve leading zero
 | --- | --- | --- |
 | `warehouse` / `bin` | farm, location, code, type; bin parent warehouse | Include owned transit/quarantine where needed; unique scope codes |
 | `lot` | product, supplier/manufacturing source, lot code, production/expiry dates, quality state | Lot identifies traceability, not quantity; quantities come from entries; expiry unknown stays unknown |
+| `stock_hold` | lot/product/location scope, reason/source, whole-lot or identified quantity scope, effective interval, active/released status, release actor/evidence | Independent quality/recall/legal/other holds; every applicable active hold enforced; releasing one never clears another; overlapping holds/reservations do not subtract the same unavailable units twice |
 | `stock_transaction` | kind, farm, business date, source, status, posting/reversal | Draft → posted; posted effects immutable; approved corrections are new transactions |
 | `stock_entry` | transaction, line GUID, product, lot, warehouse/bin, signed quantity, unit/conversion | Immutable; ownership and scope match; balanced transfer pairs in one transaction |
-| `stock_balance` | product/lot/warehouse/bin/ownership key, on_hand, reserved, version | Projection checked against entries; unique key; locked on changes |
+| `stock_balance` | canonical non-null balance_key, product/lot/warehouse/bin/ownership dimensions, on_hand, reserved, version | Unique balance_key; canonical absent lot/bin marker cannot be a valid GUID; do not rely on nullable composite uniqueness; locked on changes and reconciled to entries |
 | `stock_reservation` | demand source/line, product/lot/location, quantity, expiry, state | Availability subtracts active reservations exactly once; conversion to dispatch atomic |
 | `valuation_entry` | stock source line, valuation pool, quantity, unit cost, value, functional currency | Immutable cost effects; chronological posting sequence; no historical silent average rewrites |
 | `trade_document` | explicit kind, party, addresses snapshot, currency/rate, dates, series/number, status, totals, references | Kinds quote, sales_order, purchase_order, sales_invoice, purchase_bill, customer_credit, supplier_credit; per-kind transitions and controls |
 | `trade_line` | parent, source-line link, product/description snapshot, qty/unit, price, discount, tax/account mapping, farm/enterprise | Real child Admin View; preserve ordered/received/invoiced relationships; never replace posted children via generic subform |
 | `tax_detail` | trade line, approved rule/version, rate/base, inclusive flag, amount, jurisdiction | Exact tax snapshot; multi-tax combinations explicitly ordered or rejected |
 | `payment` | party, method, date, currency/rate, amount, bank/cash source, status, external reference | Receipt/refund disjoint types; duplicate bank/provider references reviewed |
-| `payment_allocation` | payment, invoice/credit, allocated transaction and functional amounts, FX difference | Allocations cannot exceed available payment or remaining document without a recorded overpayment balance |
+| `payment_allocation` | exactly one payment_guid or source_credit_guid, target trade_document_guid, allocated transaction and functional amounts, FX difference | Same party and compatible receivable/payable direction; allocation cannot exceed source availability or target outstanding; applying a credit creates no invented cash movement |
 | `account` / `period` | account code/type/control status; fiscal dates/open state | Posting only to leaf active accounts; period lock enforced under transaction |
 | `journal` / `journal_line` | source, date, currency context, status; account/debit/credit/dimensions/counterparty | Balanced functional debits/credits; append-only after post; unique source effects |
 | `bank_account` / `bank_statement_line` | own account identity/currency; import batch, bank row reference, amount/date | Restrict full bank details; immutable imported evidence, no duplicates on rerun |
@@ -88,7 +90,7 @@ Stock receipts and dispatches are stock transactions with line links to purchasi
 
 | Entity | Minimum fields / relations | Required controls |
 | --- | --- | --- |
-| `animal` | species/breed/sex, birth/date precision, dam/sire, owner, acquisition, farm/status, optional ledger stock-unit reference | Individual identity survives tag replacement; no negative age or impossible parent cycle |
+| `animal` | species/breed/sex, birth/date precision, dam/sire, owner, acquisition, farm/status, optional ledger_lot_guid | Individual identity survives tag replacement; no negative age or impossible parent cycle; an inventory-tracked individual has its own unique quantity-one Ledger lot |
 | `animal_identifier` | animal, scheme, tag/brand/chip, issue/end dates, evidence | Enforce scheme uniqueness where valid; record tag history and external system IDs |
 | `animal_group` | farm, species, purpose, managed-count mode | Group is a management/stock policy, not a second count of its individual members |
 | `group_membership` | individual animal, group, from/to | No overlapping membership in mutually exclusive groups |
@@ -96,12 +98,15 @@ Stock receipts and dispatches are stock transactions with line links to purchasi
 | `group_count_event` | group, signed count, reason/source, valuation association | Only for unindividualised counts; reconcile births/purchases/transfers/deaths/sales |
 | `weight_observation` | target, date, kg, equipment, sample size | Positive values; sample mean distinct from individual weight |
 | `breeding_record` | dam/group, sire/service, service date, expected/actual result | Offspring registration not duplicated by recording outcome twice |
-| `treatment` / `treatment_target` | product/lot, authorised instruction reference, actual date/dose/unit, withdrawal end; affected animals/groups | Link consumed medicine stock; snapshot applicable withdrawal rules; no automatic treatment advice |
-| `livestock_movement` / `movement_line` | origin/destination, carrier, permit evidence, requested/dispatched/received dates; targets/counts | Sale is not physical dispatch; block active withdrawal/permit failure according to approved policy |
+| `treatment` / `treatment_target` | product/lot, authorised instruction reference, actual date/dose/unit, derived restriction summary; affected animals/groups | Link consumed medicine stock; snapshot applicable rules and affected identities; per-output restrictions reside in animal_restriction; no automatic treatment advice |
+| `animal_restriction` | treatment/other source, snapshotted individual/group targets, inherited_from_guid, output/action scope, effective_from/until, status, review/release evidence | Separate meat/milk/breeding/movement or configured scope; enforce union of overlapping intervals; restriction ancestry survives split/transfer/individualisation; expiry/release evaluated per scope |
+| `livestock_movement` / `movement_line` | origin/destination, managed purpose_guid, carrier, permit evidence, requested/dispatched/received dates; targets/counts | Purpose must match reviewed sale/permit evidence and is frozen at dispatch; sale is not physical dispatch; apply relevant output/action restrictions without a caller-selected bypass |
 | `livestock_cost_link` | operational source, animal/group/enterprise, allocation rule | Cost allocation never creates a duplicate expense; ownership belongs to Ledger |
 | `wildlife_observation` | farm/species, date, survey method, count estimate/range | Observation is not domestic stock, approved quota, or guaranteed hunting availability |
 
-An individual cow may link to a Ledger stock-unit identity if the chosen inventory policy requires it. Its birth/event record does not automatically recognise statutory biological-asset fair value. Livestock financial treatment is an accountant-approved policy. Domestic herd counts and wildlife estimates are kept distinct; hunting quota is owned by Stay.
+An inventory-tracked individual cow links to one dedicated quantity-one Ledger lot; the optional `ledger_lot_guid` is unique, and that lot cannot represent another animal or a counted flock. The animal register supplies biology/identity and Ledger supplies stock quantity/value, with a reconciliation between them. Operational-only animals need no invented stock-unit table. A birth/event does not automatically recognise statutory biological-asset fair value. Livestock financial treatment is an accountant-approved policy. Domestic herd counts and wildlife estimates are kept distinct; hunting quota is owned by Stay.
+
+For an unindividualised treated group, every split, transfer, merger or conversion to individual identities propagates applicable restrictions to the affected descendants in the same transaction, linking `inherited_from_guid` to their source restriction. If unaffected animals cannot be identified reliably, apply the conservative restriction to the entire potentially affected descendant group until an authorised documented resolution. Changing a group GUID or tag never clears eligibility rules. Ledger rechecks owner-provided eligibility for inventory-linked animals and their affected outputs on every relevant issue, transfer, adjustment, sale/delivery or production path; a missing required Livestock capability fails closed.
 
 ## 6. Crops and gardening
 
@@ -109,6 +114,7 @@ An individual cow may link to a Ledger stock-unit identity if the chosen invento
 | --- | --- | --- |
 | `plot` | farm/location, area/unit, soil/irrigation context | Support beds and orchards; overlapping geometry does not automatically create more land |
 | `crop_cycle` | plot(s), crop/variety/product, start/expected harvest/end, enterprise, status | Multiple plantings require explicit area allocation; perennials use season/cycle under orchard identity |
+| `crop_cycle_plot` | cycle, plot, allocated area/unit, from/to dates, exclusive/intercropping policy reference | Real association entity; exclusive allocations cannot overlap beyond plot capacity; intercropping requires an explicit reviewed area/cost allocation method |
 | `crop_activity` | cycle, type, date, worker/task, area, notes | Plant, weed, inspect, prune, irrigate and terminate as explicit event types |
 | `input_application` | activity, input product/lot, qty/unit, area, operator, instruction/evidence, re-entry/harvest restriction | Ledger consumption and activity atomic; hold harvest when applicable approved restrictions are active |
 | `field_observation` | cycle/plot, kind, observation time, value/unit or structured result, provenance | Weather, soil and pest observations distinguish measured, estimated and imported values |
@@ -126,6 +132,7 @@ An individual cow may link to a Ledger stock-unit identity if the chosen invento
 | `material_use` | order, input product/lot, actual qty/unit, stock source | Immutable after completion; actual use can differ from BOM with approval |
 | `production_output` | order, main/byproduct/scrap discriminator, product/lot, qty/unit, cost share | Outputs conserve chosen cost-allocation policy; no negative recipe yield |
 | `quality_check` | order/lot, test/specification revision, result, actor, hold/release decision | Failed checks restrict sale/consumption according to product rules; no fake lab certification |
+| `quality_specification` | product/process, version, approved criteria, method, effective dates, approver | Immutable revision after use; checks reference the exact approved revision; approval does not substitute for required external certification |
 | `genealogy_link` | input lot, output lot, producing event, consumed/contributed quantity | Directed trace without cycles; trace upstream and downstream across rework |
 | `recall` / `recall_target` | trigger lot/reason/state; affected lots/deliveries/parties, notification/outcome | Freeze affected stock; identify customers and remaining balances; release only by authorised action |
 
@@ -138,7 +145,7 @@ Timber dimensions/grade/moisture are lot/product attributes; linear metres, cubi
 | `resource` | farm/location, physical type, code, capacity, active dates | Room/campsite, guide, vehicle or facility; products/packages reference resources, never duplicate capacity |
 | `rate_plan` / `rate_rule` | offer/currency, validity, persons/nights, charge basis, tax treatment reference | Version/snapshot accepted quotation; no recalculation of a confirmed price from today's settings |
 | `reservation` / `reservation_item` | party/contact, arrival/departure local dates, state, quote/deposit refs; resource/service allocation | Enquiry → hold → confirmed → checked_in/completed; expiry/no-show/cancel states explicit |
-| `resource_claim` | resource, local night or discrete slot, reservation, quantity, hold expiry/status | Unique room-night or locked capacity aggregate; half-open intervals; expiry releases once |
+| `resource_claim` | resource, local night or discrete slot, reservation, quantity, hold expiry/status | Lock existing physical resource row then inspect overlapping claims; half-open intervals; expiry releases once; no assumed SQL partial/exclusion index or unmodelled capacity table |
 | `guest` | reservation, party or minimal visitor data, required document references | Collect identity details only for a documented need; staff sees minimum necessary |
 | `hunt` | reservation/farm, guide/resource, dates, participants, approval state | A confirmed bed does not prove hunting eligibility |
 | `quota` / `quota_allocation` | species/farm/season, official approval ref, ceiling; hunt/count/state | Authoritative approved ceiling; locks prevent over-allocation; expired approval cannot confirm |
@@ -155,6 +162,7 @@ Use interval `[arrival_date, departure_date)` for room nights: departure day can
 | `worker` / `engagement` | party, optional Joomla user, restricted personnel data; employment/contract dates, approved terms reference | No login required for every worker; private HR data absent from ordinary task lists |
 | `skill_record` | worker, capability/certificate, issuer, validity, evidence | Expired qualification blocks designated assignments where configured |
 | `task` / `task_assignment` | farm/enterprise/location/source, due/priority/state; workers/crew/quantity | Plain-language work queue; task completion is not automatic stock or pay approval |
+| `crew` / `crew_member` | farm, name, supervisor; crew/worker, from/to dates | Managed crew membership; task captures assigned individuals or a dated membership snapshot; later membership changes do not rewrite history |
 | `time_entry` / `attendance` | worker/date/task, duration or start/end, approver | Detect overlaps, overnight shifts and corrections; approved payroll export revision retained |
 | `leave_request` | worker, local dates/type, approval, balance reference | Country policy configurable; do not infer statutory accruals without approved pack |
 | `payroll_export` | period, approved rows/hash, format/version, destination/ref, status | Exported amounts trace to approved inputs; rerun deduplicates; no false statutory calculation claim |
@@ -168,6 +176,8 @@ Use interval `[arrival_date, departure_date)` for room nights: departure day can
 
 ## 10. Derived records and integrity checks
 
-Daily cards, herd totals, availability summaries, costing totals and stock balances are projections. Define their source and rebuild process. Do not permit manual edits to a dashboard total. Integrity reports must detect orphan GUIDs, duplicate external identities, invalid scope, unsupported unit conversions, inconsistent head counts, journal imbalance, stock-to-valuation mismatch, overlapping active capacity claims and stale projections.
+Daily cards, herd totals, availability summaries, costing totals and stock balances are projections. Define their source and rebuild process. Stock balances also coordinate concurrent writes: quiesce writers for rebuild or prove a versioned snapshot/delta cutover; never replace live balances underneath posting commands. Do not permit manual edits to a dashboard total. Integrity reports must detect orphan GUIDs, duplicate external identities, invalid scope, unsupported unit conversions, inconsistent head counts, journal imbalance, stock-to-valuation mismatch, overlapping active capacity claims and stale projections.
+
+Relations between optional satellites (for example financial assets referencing operational assets, or crop tasks referencing workers) are optional typed references with capability checks. They do not add an installation dependency or permit cross-owner writes. Ledger can retain a financial asset without Work installed; a missing optional integration must not invalidate historical evidence.
 
 Retention differs by record class and country; configure it with the approved pack. Archived masters remain resolvable. Deletion of test data is separate from deletion of live business records. Runtime soft deletion, Joomla trash and reversible business cancellation are three different operations.

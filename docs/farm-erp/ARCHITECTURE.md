@@ -47,7 +47,7 @@ Working namespace ownership:
 
 - Component-specific classes use their own component namespace.
 - Cross-component public contracts and shared implementations have **one owner: Core**. Satellites reference them and do not install conflicting copies under a shared global namespace.
-- Ledger exposes a small public service facade. It does not expose a mutable Joomla model or arbitrary SQL connection as its business API.
+- Ledger exposes a small public service facade. A thin generated owner-model adapter may delegate to that facade when this is the supported native bridge; arbitrary base-model saves/deletes and SQL are not its business API. Do not assume an unimplemented `getService()` or public component-container method exists.
 - Interfaces cover a concrete need: scope checking, stock posting, financial posting, private file access, command execution and clocks. Do not wrap every generated getter.
 
 **R0 gate:** prove the supported JCB method for shipping/loading the shared contracts from Core, obtaining owner services through the component extension, preventing duplicate class definitions, checking compatible versions, and surviving upgrade/uninstall. A compiled class in `/libraries` is not evidence of correctly owned installation. If this cannot be achieved natively, stop expansion and document the supported alternative; do not hide an independently maintained PHP package outside JCB.
@@ -82,8 +82,8 @@ DDL migrations are not covered by ordinary business rollback. Plan and verify th
 - Every mutable aggregate has an integer version checked on update; forms include that version and show a useful conflict message.
 - Commands have client-generated UUID request keys, server-computed canonical payload hashes and a unique `(organisation_guid, command_type, request_key)` receipt. Reusing a key with different content is a conflict.
 - Immutable effects have natural uniqueness too: `(source_type, source_guid, source_line_guid, effect_kind, revision)` or a documented equivalent. HTTP retries are not the only duplication source.
-- Lock stock balance rows before checks. Creation of an absent balance row must use a unique key plus a race-safe insert/lock sequence.
-- Reservations use capacity claims protected by locks/unique keys. Availability displayed in a calendar is advisory until the server commits a claim.
+- Lock stock balance rows before checks. Creation of an absent balance row must use a unique key plus a race-safe insert/lock sequence. Use a canonical non-null `balance_key`; a composite unique key containing nullable lot/bin fields is insufficient. Validate the canonical tuple and keep its dimensions available for inspection.
+- Reservations initially lock the existing physical resource rows in sorted GUID order and check all overlapping night/slot claims under those locks. This conservatively serializes each resource without inventing an absent capacity table. A later per-resource/night lock table requires an explicit model and new proof. Do not assume the SQL engine supplies partial or exclusion indexes. Displayed availability is advisory until the server commits a claim.
 - Retry a whole rolled-back transaction only for classified transient failures. Never retry a partially committed inner service or ignore a unique-key error.
 - Use fixed lock ordering and bounded retries; log contention without personal data. Contract tests include simultaneous requests on the production database engine.
 
@@ -103,11 +103,11 @@ Cross-component state changes that must be atomic use synchronous owner services
 
 Use typed, versioned event payloads with source GUID, actor, correlation ID, schema version and UTC occurrence. Keep personal details out unless needed by the destination. Transport authentication, signatures and retries are adapter responsibilities.
 
-Reports query owner-authorised read models. Precomputed projections are labelled with an as-of watermark and can be rebuilt from the authoritative records. They cannot become a second balance authority. The pilot uses SQL/Dynamic Gets and indexed summaries; a data warehouse is unnecessary.
+Reports query owner-authorised read models. Precomputed projections are labelled with an as-of watermark and can be rebuilt from the authoritative records. They cannot become a second balance authority. Stock balances additionally coordinate concurrent posting: rebuild only with writers quiesced, or through a proved versioned snapshot/delta cutover with reconciliation. The pilot uses SQL/Dynamic Gets and indexed summaries; a data warehouse is unnecessary.
 
 ## 10. Optional modules and financial modes
 
-Disabling a domain hides new capture but keeps historical records readable and reporting intact. It cannot delete lots, bookings or ledger references. Upgrades test installations with different enabled module combinations.
+Disabling a domain hides new ordinary capture but keeps historical records readable, reporting intact and authorised corrective/safety actions available through maintained owner services (including recalls, reversals and cancellation of existing claims). It cannot delete lots, bookings or ledger references. Upgrades test installations with different enabled module combinations.
 
 Ledger starts in either **operational/export mode** or **native accounting mode**. Operational mode records stock value and trade evidence but exposes no statutory trial balance. Switching to native mode requires an approved cutover date, mapped opening journals and reconciled controls; never replay all history blindly. Once native accounting has posted, switching back requires a controlled migration decision, not a settings toggle.
 

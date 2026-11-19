@@ -38,6 +38,8 @@ Tax calculation order is explicit: price basis → permitted discount allocation
 
 Every stock-managed product has a base unit and declared lot/expiry tracking. Use a single owned-location hierarchy: store → bin. Quarantine and in-transit stock are explicit statuses/locations with availability rules. Consignment/third-party stock, if introduced, requires separate ownership and must not be valued as farm-owned stock automatically.
 
+Maintain independent `stock_hold` records for quality, recall and other restrictions. A quality release closes only its matching hold; another active hold still blocks the lot. Compute unavailable stock from the union of restricted units and reservation commitments, not by blindly subtracting overlapping full-lot holds twice. For partial holds, identify the affected quantity/partition and prove its allocation semantics; the initial safe policy can hold the entire lot when the affected units cannot be distinguished.
+
 Reject negative available stock by default. A physical emergency is recorded as a pending discrepancy requiring an authorised count/adjustment, not as an invisible negative posting. A counted adjustment includes reason, evidence, counted time and approver; stale counts must reconcile intervening movements before posting.
 
 Reserve against a source line; partial fulfilment reduces the reservation and on-hand quantity atomically. Cancelled/expired demands release remaining reservations exactly once. Transfer within a warehouse or same-site move is one balanced transaction. Travel between farms can use two honest physical stages: dispatch into owned transit, then receipt out of transit. A failed one-stage transfer may not leave only its debit or credit.
@@ -83,6 +85,8 @@ Synthetic fixture: deliver goods at carrying cost N$600, invoice N$1,000, receiv
 | Receipt | Bank/cash 1,000 | Accounts receivable 1,000 |
 
 Return authorisation → physical return/inspection → accepted inventory transaction → customer credit/refund. Damaged returns may enter quarantine/scrap instead of saleable stock. Credit without return is a financial adjustment with an explicit reason. Keep the original tax and exchange snapshots needed by the selected country's correction rules.
+
+An allocation has exactly one funding source: a real payment (including a classified deposit) or a posted customer/supplier credit. A credit can clear an invoice/bill without fabricating a cash payment. Validate same party, compatible AR/AP direction, supported currency pairing and remaining source/target amounts under locks. Allocation of an already posted credit changes subledger settlement; it does not recognise the credit's revenue/tax effect twice. An unapplied credit remains separately visible even when the customer's net balance is zero.
 
 Cash sessions record opening float, cash/card/bank sales, refunds, expenses, expected cash, counted cash and variance. External card settlement is reconciled separately; a card receipt is not immediate bank cash. Market staff cannot hide discrepancies by editing opening float after close.
 

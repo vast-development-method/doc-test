@@ -60,6 +60,8 @@ Activate native double-entry accounting only after account mappings, opening bal
 
 Add full herd/group management, crop cycles and harvest, wood/food production, traceability and recall, lodging/hunting bookings, workforce, infrastructure and asset maintenance. Each enterprise ships as a tested vertical slice with its ledger effects and farmer workflow.
 
+Selected operational enterprise slices can follow the R1 foundation while R2 native accounting proceeds in parallel. This lets the first farmer use woodwork or basic lodging with accountant exports; it does not postpone his main enterprises behind every native-accounting feature. The complete ERP release still requires the accounting and regional gates.
+
 ### R4 — regional hardening and general release
 
 Validate all three country packs with local reviewers, field connectivity, recovery, import/export, security, performance and staff usability. Add bounded offline draft capture and selected integrations only after their own tests. A deployment enables only the packs and advanced features that passed their gate.
