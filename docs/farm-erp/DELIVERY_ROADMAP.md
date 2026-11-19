@@ -107,7 +107,7 @@ M06–M10 have independent domain owners and may be developed in parallel after 
 **Depends on:** M03. **Release:** R1 exit. **Owner:** lead + Livestock/Work + farmer.
 
 - Add minimal Animal/Identifier/Event/Weight and farm tasks/worker assignment. Use individual or counted-group policy deliberately and avoid double counting.
-- Connect feed issues, medicine evidence where reviewed, herd/enterprise cost attribution and normal expense capture to Ledger.
+- Connect feed issues, herd/enterprise cost attribution and normal expense capture to Ledger. Existing medicine documents may be attached as evidence; live treatment/restriction-dependent operations require the M06 control slice first, even if delivered early for this pilot.
 - Complete the chosen end-to-end pilot flow with a useful Today screen and printed/exported outputs.
 - Import a small reviewed sample, reconcile counts/stock/values, and train the farmer plus a capture user.
 - Run one controlled operating period with the established external accountant remaining the statutory authority. Record real usability problems and source-correct them.

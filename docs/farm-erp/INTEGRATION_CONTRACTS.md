@@ -91,10 +91,10 @@ No endpoint returns HTTP 200 with an error that the UI treats as success. A logg
 | Family | Commands | Principal effects |
 | --- | --- | --- |
 | Core | `core.approve_import`, `core.activate_country_pack`, `core.change_scope` | Controlled imports/settings/access audit |
-| Stock | `stock.receive`, `stock.transfer`, `stock.reserve`, `stock.issue`, `stock.adjust`, `stock.reverse` | Quantity + valuation + source state + optional GL |
+| Stock | `stock.receive`, `stock.transfer`, `stock.reserve`, `stock.issue`, `stock.adjust`, `stock.reverse`, `stock.place_hold`, `stock.release_hold` | Quantity + valuation + source state + optional GL; independent source-controlled holds |
 | Trade | `trade.confirm_order`, `trade.post_invoice`, `trade.post_bill`, `trade.post_credit`, `trade.close_cash_session` | Frozen snapshots, numbering, tax, balances, GL |
 | Accounting | `finance.post_payment`, `finance.allocate_payment`, `finance.post_journal`, `finance.reconcile_bank`, `finance.close_period`, `finance.revalue_fx` | Balanced immutable financial effects |
-| Livestock | `livestock.register_birth`, `livestock.record_weight`, `livestock.record_treatment`, `livestock.dispatch_movement`, `livestock.receive_movement`, `livestock.record_mortality` | Biological/ownership events plus required stock/cost effects |
+| Livestock | `livestock.register_birth`, `livestock.record_weight`, `livestock.record_treatment`, `livestock.release_restriction`, `livestock.dispatch_movement`, `livestock.receive_movement`, `livestock.record_mortality` | Biological/ownership events plus required stock/cost effects; evidence-bound independent restriction review/release |
 | Crops | `crops.record_application`, `crops.record_irrigation`, `crops.complete_harvest` | Crop activity/input consumption/harvest lots |
 | Make | `make.release_order`, `make.complete_batch`, `make.release_quality`, `make.start_recall` | Materials/output/genealogy/cost/quality restrictions |
 | Stay | `stay.place_hold`, `stay.confirm_reservation`, `stay.expire_hold`, `stay.cancel_reservation`, `stay.approve_hunt`, `stay.record_hunt_outcome` | Capacity/quota claims and distinct commercial effects |

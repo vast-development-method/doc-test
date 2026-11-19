@@ -6,6 +6,8 @@ This research PR validates documentation structure and source references. It doe
 
 Use [acceptance-cases.json](contracts/acceptance-cases.json) as the case backlog, [farm operating scenarios](research/FARM_OPERATING_SCENARIOS.md) for farmer narratives and [ERP workflow patterns](research/ERP_WORKFLOW_PATTERNS.md) for accounting/stock examples. Similar-looking fixtures are independent datasets; do not combine their quantities/prices into a single unbalanced test farm.
 
+A case's primary milestone is the planned introduction point, not an exemption for early feature activation. If the pilot enables counted flocks, treatments, production or lodging before its nominal later phase, promote and pass all relevant domain/financial-mode cases before live use. R1's minimal individually tagged animal example does not certify untested group or treatment behaviour.
+
 ## 2. Test layers and their meaning
 
 | Layer | Proves | Does not prove |

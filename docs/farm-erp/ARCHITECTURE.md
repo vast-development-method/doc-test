@@ -109,6 +109,8 @@ Reports query owner-authorised read models. Precomputed projections are labelled
 
 Disabling a domain hides new ordinary capture but keeps historical records readable, reporting intact and authorised corrective/safety actions available through maintained owner services (including recalls, reversals and cancellation of existing claims). It cannot delete lots, bookings or ledger references. Upgrades test installations with different enabled module combinations.
 
+This is an application capability state, not permission to remove required owner code. Historical obligations and eligibility providers remain installed while referenced. Ledger can call a registered domain eligibility policy without taking a hard installation dependency on every domain; when a particular product/source requires that policy and it is unavailable, the affected command fails closed.
+
 Ledger starts in either **operational/export mode** or **native accounting mode**. Operational mode records stock value and trade evidence but exposes no statutory trial balance. Switching to native mode requires an approved cutover date, mapped opening journals and reconciled controls; never replay all history blindly. Once native accounting has posted, switching back requires a controlled migration decision, not a settings toggle.
 
 ## 11. Architecture rejection criteria

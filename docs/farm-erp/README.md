@@ -18,7 +18,19 @@ This is a design and delivery contract for a new JCB-native application. Propose
 
 The JSON files in [contracts](contracts) are **design registries**, not importable JCB package records and not implemented APIs. They provide stable identifiers for component ownership, entities, milestones and acceptance cases. The JCB author maps them to the current native model contracts; inventing JCB GUIDs or serialisation from these files is prohibited.
 
+| Registry | Purpose |
+| --- | --- |
+| [Components](contracts/components.json) | The seven owners, dependencies, optional capabilities and entity ownership |
+| [Domain entities](contracts/domain-entities.json) | Logical fields, relations, identity types, invariants and native authoring requirements |
+| [Commands](contracts/commands.json) | Required payloads, permissions, locks, effects, corrections and linked acceptance cases |
+| [Command envelope](contracts/command-envelope.schema.json) | Strict transport shape; command-specific validation is additionally required |
+| [Country pack](contracts/country-pack.schema.json) | Effective-date, evidence, review and capability activation metadata |
+| [Milestones](contracts/roadmap.json) | Ordered dependency graph and linked acceptance gates |
+| [Acceptance cases](contracts/acceptance-cases.json) | Concrete test backlog, initially unrun, with expected persistent/failure results |
+
 Run `bash tools/validate-roadmap.sh` from the repository root to check their consistency and local document links. This validates documentation; it does not compile or exercise an ERP.
+
+These registries cover the eventual product, not a requirement to generate the entire schema before the pilot. Follow the milestone slices and retain each independent domain's owner. The structured records and prose must change together.
 
 ## Evidence vocabulary
 
